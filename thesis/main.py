@@ -26,4 +26,5 @@ def new_mag(mag, scst):
     return
 
 g = read_pag(PAG_FILE)
-main(g)
+scst = read_scst(SCST_FILE)
+main(g, scst)

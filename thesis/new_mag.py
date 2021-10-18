@@ -1,3 +1,6 @@
+from conversion import adjacency_matrix_to_graph, pag_only_directed_edges
+
+import graph_tool.all as gt
 import numpy as np
 
 def adjacent_mags(mag):
@@ -33,8 +36,25 @@ def adjacent_mags(mag):
                            axis=0
                            )
 
-    # we filter out all copies of the original mag
+    # filter out all copies of the original mag
     is_original_mag = (mags == mag).all(axis=(1, 2))
     mags = mags[~is_original_mag]
 
+    # filter out mags with cycles
+    c = np.array([almost_directed_cycle(m) for m in mags])
+    mags = mags[~c]
+
     return mags
+
+def almost_directed_cycle(mag):
+    """Checks if a mag has any (almost) directed cycles"""
+    mag = mag.copy()
+    mag_directed = pag_only_directed_edges(mag.copy())
+    g = adjacency_matrix_to_graph(mag_directed)
+
+    paths = gt.transitive_closure(g).get_edges()
+
+    # TODO: why does this indexing work exactly
+    cycles = (mag[paths[:, 1], paths[:, 0]] == 2).any()
+
+    return cycles
