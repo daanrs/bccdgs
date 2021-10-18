@@ -10,7 +10,7 @@ def pag_to_mag(pag):
     pag_directed = pag_only_directed_edges(pag.copy())
 
     pag_graph= adjacency_matrix_to_graph(pag_directed)
-    t_sort = gt.topological_sort(pag_graph)
+    tsort = gt.topological_sort(pag_graph)
 
     return orient_with_topological_sort(pag, tsort)
 
@@ -50,6 +50,6 @@ def adjacency_matrix_to_graph(matrix):
 
     return g
 
-def orient_with_topological_sort(pag, t_sort):
+def orient_with_topological_sort(pag, tsort):
     """TODO: implement"""
-    return
+    return pag
