@@ -4,6 +4,10 @@ import graph_tool.all as gt
 import numpy as np
 
 def adjacent_mags(mag):
+    """Generates all valid mags which can be created through changing a
+    single edge.
+
+    TODO: implement this more efficiently."""
     # we need a non-empty array for np.concatenate to work properly
     mags = np.array([mag])
 
@@ -11,7 +15,7 @@ def adjacent_mags(mag):
     for i in np.arange(1, n):
         for j in np.arange(0, i):
             # one of the following is the same as the original mag, we
-            # filter that out later; TODO: do that more efficiently
+            # filter that out later
             mag_arrow_tail = mag.copy()
             mag_arrow_tail[i, j] = 2
             mag_arrow_tail[j, i] = 1
@@ -48,13 +52,12 @@ def adjacent_mags(mag):
 
 def almost_directed_cycle(mag):
     """Checks if a mag has any (almost) directed cycles"""
-    mag = mag.copy()
     mag_directed = pag_only_directed_edges(mag.copy())
     g = adjacency_matrix_to_graph(mag_directed)
 
     paths = gt.transitive_closure(g).get_edges()
 
     # TODO: why does this indexing work exactly
-    cycles = (mag[paths[:, 1], paths[:, 0]] == 2).any()
+    cycles = (mag[paths[:, 0], paths[:, 1]] == 2).any()
 
     return cycles

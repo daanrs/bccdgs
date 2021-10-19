@@ -35,7 +35,7 @@ def pag_only_directed_edges(pag):
     tails = pag == 1
     arrows_t = pag.T == 2
 
-    # set arcs to 1, and everything else to 0
+    # set pag[i, j] = 1 iff i --> j; everything else to 0
     pag[tails & arrows_t] = 1
     pag[~(tails & arrows_t)] = 0
     return pag
