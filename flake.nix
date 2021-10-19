@@ -26,7 +26,11 @@
         defaultPackage = self.packages.${system}.${packageName};
 
         devShell = myAppEnv.env.overrideAttrs (oldAttrs: {
-          buildInputs = [ pkgs.poetry pkgs.python39Packages.graph-tool ];
+          buildInputs = with pkgs; [
+            poetry
+            python39Packages.graph-tool
+            python39Packages.ipython
+          ];
         });
       });
 }
