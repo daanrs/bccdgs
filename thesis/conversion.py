@@ -3,45 +3,54 @@ import numpy as np
 
 # TODO: ensure everything is .copy()'d iff necessary
 
-def pag_to_mag(pag):
-    """Turns a pag into some reasonable mag. This MAG may not actually
-    belong to the PAG's proper equivalence class."""
-    pag = pag_create_arcs(pag)
-    pag_directed = pag_only_directed_edges(pag.copy())
+def pag_to_mag(g):
+    """
+    Turn a PAG into some reasonable MAG.
 
-    pag_graph = adjacency_matrix_to_graph(pag_directed)
-    tsort = gt.topological_sort(pag_graph)
+    This MAG may not actually belong to the PAG's equivalence class.
+    """
+    g = orient_arcs(g)
+    g_directed = to_directed(g.copy())
 
-    return orient_with_topological_sort(pag, tsort)
+    tsort = gt.topological_sort(numpy_to_gt(g_directed))
 
-def pag_create_arcs(pag):
-    """Returns a view with all possible circles turned into arcs; o-> and
-    o-- are turned into --> and <-- respectively, o-o are left as they
-    are."""
+    return orient_with_topological_sort(g, tsort)
+
+def orient_arcs(g):
+    """
+    Return a view with all semi-arcs turned into arcs.
+
+    o-> and o-- are turned into --> and <-- respectively, o-o are left as
+    they are.
+    """
     # we select all circles
-    circles = pag == 3
+    circles = g == 3
 
     # we transpose the array to check the other part of the edge
-    arrows_t = pag.T == 2
-    tails_t = pag.T == 1
+    arrows_t = g.T == 2
+    tails_t = g.T == 1
 
     # select edges with circles and arrows/tails, then orient circle marks
-    pag[circles & arrows_t] = 1
-    pag[circles & tails_t] = 2
-    return pag
+    g[circles & arrows_t] = 1
+    g[circles & tails_t] = 2
+    return g
 
-def pag_only_directed_edges(pag):
-    """Takes a pag and returns a view with only its directed edges"""
-    tails = pag == 1
-    arrows_t = pag.T == 2
+def to_directed(g):
+    """
+    Take a graph and return a view with only its directed edges.
+    """
+    tails = g == 1
+    arrows_t = g.T == 2
 
-    # set pag[i, j] = 1 iff i --> j; everything else to 0
-    pag[tails & arrows_t] = 1
-    pag[~(tails & arrows_t)] = 0
-    return pag
+    # set g[i, j] = 1 iff i --> j; everything else to 0
+    g[tails & arrows_t] = 1
+    g[~(tails & arrows_t)] = 0
+    return g
 
-def adjacency_matrix_to_graph(matrix):
-    """Takes a directed adjacency matrix and returns a gt.Graph"""
+def numpy_to_gt(matrix):
+    """
+    Take a numpy directed adjacency matrix and return a gt.Graph.
+    """
     g = gt.Graph()
 
     edges = np.stack(np.nonzero(matrix), axis=1)
@@ -50,12 +59,14 @@ def adjacency_matrix_to_graph(matrix):
 
     return g
 
-def orient_with_topological_sort(pag, tsort):
-    """Returns a view of the PAG with all o-o circle edges turned into
-    arcs according to the topological sort."""
+def orient_with_topological_sort(g, tsort):
+    """
+    Return a view of the PAG with all o-o circle edges turned into
+    arcs according to the topological sort.
+    """
     for i in tsort:
-        for j in np.arange(0, len(pag)):
-            if pag[i, j] == 3 and pag[j, i] == 3:
-                pag[i, j] = 1
-                pag[j, i] = 2
-    return pag
+        for j in np.arange(0, len(g)):
+            if g[i, j] == 3 and g[j, i] == 3:
+                g[i, j] = 1
+                g[j, i] = 2
+    return g

@@ -20,7 +20,8 @@
         };
 
         packageName = "thesis";
-      in {
+      in
+      {
         packages.${packageName} = app;
 
         defaultPackage = self.packages.${system}.${packageName};

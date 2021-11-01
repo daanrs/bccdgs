@@ -1,4 +1,4 @@
-from conversion import adjacency_matrix_to_graph, pag_only_directed_edges
+from conversion import numpy_to_gt, to_directed
 
 import graph_tool.all as gt
 import numpy as np
@@ -52,8 +52,8 @@ def adjacent_mags(mag):
 
 def almost_directed_cycle(mag):
     """Checks if a mag has any (almost) directed cycles"""
-    mag_directed = pag_only_directed_edges(mag.copy())
-    g = adjacency_matrix_to_graph(mag_directed)
+    mag_directed = to_directed(mag.copy())
+    g = numpy_to_gt(mag_directed)
 
     paths = gt.transitive_closure(g).get_edges()
 

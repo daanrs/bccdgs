@@ -6,17 +6,20 @@ from score import score
 import numpy as np
 
 def main(pag, scst, max_iter=1000000, delta=0):
-    mag = pag_to_mag(pag)
+    mag = pag_to_mag(pag.copy())
 
     new_mag = get_new_mag(mag, scst)
     n = 0
 
-    while (score(new_mag, scst) > score(mag, scst) + delta) and (n <= max_iter):
+    while (
+            (score(new_mag, scst) > score(mag, scst) + delta)
+            and (n <= max_iter)
+    ):
+        print(str(score(mag, scst)) + " -> " + str(score(new_mag, scst)))
         mag = new_mag.copy()
         new_mag = get_new_mag(new_mag, scst)
         n += 1
 
-    # TODO: this should return a PAG
     return mag
 
 def get_new_mag(mag, scst):

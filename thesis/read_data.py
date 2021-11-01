@@ -28,6 +28,6 @@ def read_scst(file):
     df[:, 2:] -= 1
 
     # removing all the low probability statements, for now
-    df = df[df[:, 0] > 0.1]
+    df = df[df[:, 0] > 0.01]
 
     return df
