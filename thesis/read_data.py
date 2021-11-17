@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 PAG_FILE = "../data/pag1.csv"
-SCST_FILE = "../data/scst.csv"
+LST_FILE = "../data/lst.csv"
 
 def read_pag(file):
     """Reads the PAG from a csv file"""
@@ -13,8 +13,8 @@ def read_pag(file):
 
     return df
 
-def read_scst(file):
-    """Reads scoring statements from a csv file.
+def read_lst(file):
+    """Reads logical statements from a csv file.
 
     TODO: this currently makes a bunch of changes to the input"""
     df = (

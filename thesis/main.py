@@ -1,33 +1,33 @@
 from conversion import pag_to_mag
 from new_mag import adjacent_mags
-from read_data import read_pag, read_scst
+from read_data import read_pag, read_lst
 from score import score
 
 import numpy as np
 
-def main(pag, scst, max_iter=1000000, delta=0):
+def main(pag, lst, max_iter=1000000, delta=0):
     mag = pag_to_mag(pag.copy())
 
-    new_mag = get_new_mag(mag, scst)
+    new_mag = get_new_mag(mag, lst)
     n = 0
 
     while (
-            (score(new_mag, scst) > score(mag, scst) + delta)
+            (score(new_mag, lst) > score(mag, lst) + delta)
             and (n <= max_iter)
     ):
-        print(str(score(mag, scst)) + " -> " + str(score(new_mag, scst)))
+        print(str(score(mag, lst)) + " -> " + str(score(new_mag, lst)))
         mag = new_mag.copy()
-        new_mag = get_new_mag(new_mag, scst)
+        new_mag = get_new_mag(new_mag, lst)
         n += 1
 
     return mag
 
-def get_new_mag(mag, scst):
+def get_new_mag(mag, lst):
     """
     Returns an adjacent mag with the maximum score.
     """
     mags = adjacent_mags(mag)
-    mag_score = [score(m, scst) for m in mags]
+    mag_score = [score(m, lst) for m in mags]
 
     max_mag = np.argmax(mag_score)
 

@@ -3,11 +3,11 @@ from conversion import numpy_to_gt, to_directed
 import graph_tool.all as gt
 import numpy as np
 
-def score(mag, scst):
+def score(mag, lst):
     """Score how well a mag fits to lst"""
-    checks = np.array([statement(mag, s) for s in scst[:, 1:]])
+    checks = np.array([statement(mag, s) for s in lst[:, 1:]])
 
-    false_checks = scst[~checks]
+    false_checks = lst[~checks]
     sc = np.sum(np.log(false_checks[:, 0]))
 
     return sc
@@ -15,8 +15,6 @@ def score(mag, scst):
 def statement(mag, statement):
     """
     Check whether a statement is correct.
-
-    TODO: wip
 
     [x,y,z] = x=>y || x=>z || x=>S : c = +1
     [x,y,y] = x=>y         || x=>S : c = +2
@@ -31,6 +29,7 @@ def statement(mag, statement):
     [c, x, y, z] = statement.astype(np.int64)
 
     # we need do to this because the encoding in R starts at 1
+    # TODO: find a better way to do this
     x -= 1
     y -= 1
     z -= 1
@@ -75,10 +74,7 @@ def edge(mag, x, y):
         return False
 
 def cofounder(mag, x, y):
-    """
-    Check if there is a cofounder between x and y.
-
-    """
+    """ Check if there is a cofounder between x and y."""
     g = gt.transitive_closure(numpy_to_gt(to_directed(mag.copy())))
 
     # TODO: make this more efficient
