@@ -4,10 +4,12 @@ import graph_tool.all as gt
 import numpy as np
 
 def adjacent_mags(mag):
-    """Generates all valid mags which can be created through changing a
-    single edge.
+    """
+    Generate all valid mags which can be created through changing a single
+    edge.
 
-    TODO: implement this more efficiently."""
+    TODO: implement this more efficiently.
+    """
     # we need a non-empty array for np.concatenate to work properly
     mags = np.array([mag])
 
@@ -51,7 +53,7 @@ def adjacent_mags(mag):
     return mags
 
 def almost_directed_cycle(mag):
-    """Checks if a mag has any (almost) directed cycles"""
+    """Check if a mag has any (almost) directed cycles"""
     mag_directed = to_directed(mag.copy())
     g = numpy_to_gt(mag_directed)
 

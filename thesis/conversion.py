@@ -8,6 +8,8 @@ def pag_to_mag(g):
     Turn a PAG into some reasonable MAG.
 
     This MAG may not actually belong to the PAG's equivalence class.
+
+    TODO: generate multiple alternatives
     """
     g = orient_arcs(g)
     g_directed = to_directed(g.copy())
@@ -47,6 +49,15 @@ def to_directed(g):
     g[~(tails & arrows_t)] = 0
     return g
 
+def from_directed(g):
+    """
+    Takes a graph where [i, j] = 1 and returns one where [j, i] = 2 is
+    added
+    """
+    arrows = g.T == 1
+    g[arrows] = 2
+    return g
+
 def numpy_to_gt(matrix):
     """
     Take a numpy directed adjacency matrix and return a gt.Graph.
@@ -70,3 +81,40 @@ def orient_with_topological_sort(g, tsort):
                 g[i, j] = 1
                 g[j, i] = 2
     return g
+
+def dag_to_mag(dag, latent_variables):
+    """
+    If Y latent, then change all X -> Y -> Z to X -> Z,
+    and X <- Y -> Z to X <-> Z, and then remove Y from graph.
+
+    We assume latent_variables is an array of indices, and dag is a
+    adjacency matrix.
+    """
+    # get dag in a nice format
+    dag[dag != 0] = 1
+    dag = from_directed(dag)
+
+    # add necessary edges
+    for i in latent_variables:
+        for j in np.arange(0, len(dag)):
+            # if i -> j
+            if dag[i, j] == 1:
+                for k in np.arange(0, len(dag)):
+
+                    # if k -> i -> j and no edge k, j then k -> j
+                    if dag[k, i] == 1 and dag[k, j] == 0 and dag[j, k] == 0:
+                        dag[k, j] = 1
+                        dag[j, k] = 2
+
+                    # if k <- i -> j and no edge k, j then k <-> j
+                    elif dag[k, i] == 2 and dag[k, j] == 0 and dag[j, k] == 0:
+                        dag[k, j] = 2
+                        dag[j, k] = 2
+
+    # drop latent variables
+    mask = np.ones(len(dag), dtype=bool)
+    mask[latent_variables] = False
+
+    dag = dag[mask]
+
+    return dag

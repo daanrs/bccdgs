@@ -1,12 +1,13 @@
 from conversion import pag_to_mag
 from new_mag import adjacent_mags
-from read_data import read_pag, read_lst
 from score import score
 
+import graph_tool.all as gt
 import numpy as np
 
 def main(pag, lst, max_iter=1000000, delta=0):
-    mag = pag_to_mag(pag.copy())
+    original_mag = pag_to_mag(pag.copy())
+    mag = pag_to_mag(original_mag.copy())
 
     new_mag = get_new_mag(mag, lst)
     n = 0
@@ -20,15 +21,19 @@ def main(pag, lst, max_iter=1000000, delta=0):
         new_mag = get_new_mag(new_mag, lst)
         n += 1
 
+    print(gt.similarity(original_mag, mag))
     return mag
 
 def get_new_mag(mag, lst):
     """
-    Returns an adjacent mag with the maximum score.
+    Return an adjacent mag with the best score.
+
+    Currently this is the minimum score, as it is implemented as a
+    penalty.
     """
     mags = adjacent_mags(mag)
     mag_score = [score(m, lst) for m in mags]
 
-    max_mag = np.argmax(mag_score)
+    best_mag = np.argmin(mag_score)
 
-    return mags[max_mag]
+    return mags[best_mag]

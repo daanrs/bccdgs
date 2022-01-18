@@ -4,11 +4,22 @@ import graph_tool.all as gt
 import numpy as np
 
 def score(mag, lst):
-    """Score how well a mag fits to lst"""
+    """
+    Score how well a mag fits to lst.
+
+    This penalizes statements which return false, with the penalty being
+    abs(ln(p) - ln(1-p)).
+    """
     checks = np.array([statement(mag, s) for s in lst[:, 1:]])
 
+    # TODO: should this be on false checks?
     false_checks = lst[~checks]
-    sc = np.sum(np.log(false_checks[:, 0]))
+    sc = np.sum(
+        np.abs(
+            np.log(false_checks[:, 0])
+            -  np.log(1 - false_checks[:, 0])
+        )
+    )
 
     return sc
 
@@ -83,7 +94,7 @@ def cofounder(mag, x, y):
     # TODO: is this right?
     b = False
     if g.size > 0:
-        for i in np.arange(g.shape[0]):
+        for _ in np.arange(g.shape[0]):
             # TODO: should this be g[b, y] instead?
             if (g[x, b] == 1) and (g[y, b] == 1):
                 b = True
