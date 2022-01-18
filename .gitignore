@@ -147,3 +147,5 @@ cython_debug/
 
 ## nix specific
 .direnv
+
+data

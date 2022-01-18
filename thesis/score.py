@@ -7,13 +7,13 @@ def score(mag, lst):
     """
     Score how well a mag fits to lst.
 
-    This penalizes statements which return false, with the penalty being
+    This sums statements which return true, with the value being
     abs(ln(p) - ln(1-p)).
     """
     checks = np.array([statement(mag, s) for s in lst[:, 1:]])
 
     # TODO: should this be on false checks?
-    false_checks = lst[~checks]
+    false_checks = lst[checks]
     sc = np.sum(
         np.abs(
             np.log(false_checks[:, 0])

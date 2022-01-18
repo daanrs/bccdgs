@@ -91,7 +91,6 @@ def dag_to_mag(dag, latent_variables):
     adjacency matrix.
     """
     # get dag in a nice format
-    dag[dag != 0] = 1
     dag = from_directed(dag)
 
     # add necessary edges
@@ -112,9 +111,11 @@ def dag_to_mag(dag, latent_variables):
                         dag[j, k] = 2
 
     # drop latent variables
-    mask = np.ones(len(dag), dtype=bool)
-    mask[latent_variables] = False
+    # mask = np.ones(dag.shape, dtype=bool)
+    # mask[latent_variables] = False
+    # mask[:, latent_variables] = False
 
-    dag = dag[mask]
+    dag = np.delete(dag, latent_variables, axis=0)
+    dag = np.delete(dag, latent_variables, axis=1)
 
     return dag
