@@ -7,7 +7,7 @@ LST_FILE = "../data/lst.csv"
 def read_pag(file):
     """Reads the PAG from a csv file"""
     df = (
-        pd.read_csv(file, sep='\s+', header=None)
+        pd.read_csv(file, sep=',', header=None)
         .to_numpy()
     )
 
@@ -18,12 +18,12 @@ def read_lst(file):
 
     TODO: this currently makes a bunch of changes to the input"""
     df = (
-        pd.read_csv(file, sep='\s+', header=None)
+        pd.read_csv(file, sep=',', header=None)
         .to_numpy()
         [:, [0, 2, 3, 4, 5]]
     )
 
-    # reduce vertex indices by one since input uses 1...n instead of
+    # reduce vertex indices by one since R uses 1...n instead of
     # 0...n-1
     df[:, 2:] -= 1
 
