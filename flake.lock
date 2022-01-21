@@ -15,6 +15,21 @@
         "type": "github"
       }
     },
+    "flake-utils_2": {
+      "locked": {
+        "lastModified": 1631561581,
+        "narHash": "sha256-3VQMV5zvxaVLvqqUrNz3iJelLw30mIVSfZmAaauM3dA=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "7e5bf3925f6fbdfaf50a2a7ca0be2879c4261d19",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1633948197,
@@ -30,10 +45,45 @@
         "type": "github"
       }
     },
+    "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1634066093,
+        "narHash": "sha256-3tj0IcRF0bfPdyavfALuo9QADLNodU/xUSC06HeetAI=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "e972bf9958d91184d1e68839a6fd352ece242cff",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "rucausal": "rucausal"
+      }
+    },
+    "rucausal": {
+      "inputs": {
+        "flake-utils": "flake-utils_2",
+        "nixpkgs": "nixpkgs_2"
+      },
+      "locked": {
+        "lastModified": 1637178755,
+        "narHash": "sha256-cM2wYWRYr13qZL1ueR0SuaCN8ASvryZ2BD0QfqigVs0=",
+        "ref": "nix",
+        "rev": "2263fdaa2097d321a6ff84a0a9d09c59f61f4077",
+        "revCount": 129,
+        "type": "git",
+        "url": "file:///home/daan/code/uni/thesis/bccd"
+      },
+      "original": {
+        "type": "git",
+        "url": "file:///home/daan/code/uni/thesis/bccd"
       }
     }
   },
