@@ -1,14 +1,24 @@
 library(RUcausal)
 library(pcalg)
 
-# NOT RUN {
-## create the graph
-set.seed(78)
-g <- randomDAG(10, prob = 0.25)
-graph::nodes(g) # "1" "2" ... "10" % FIXME: should be kept in result!
+location = commandArgs()[6]
+print(location)
 
-## define nodes 2 and 6 to be latent variables
-L <- c(2,6)
+# nodes
+v = 10
+# probability of edge
+#prob = 0.25
+prob = 0.25
+# max hidden
+hid = 2
+points = 1000
+
+##
+L_num <- sample.int(hid, 1)
+L <- sample.int(v, hid)
+
+g <- randomDAG(v, prob = prob)
+graph::nodes(g) # "1" "2" ... "10"
 
 ## compute the true covariance matrix of g
 cov.mat <- trueCov(g)
@@ -29,7 +39,7 @@ true.cov1 <- cov.mat[-L,-L]
 true.corr1 <- cov2cor(true.cov1)
 
 ## generate 10000 samples of DAG using standard normal error distribution
-n <- 10000
+n <- points
 d.normMat <- rmvDAG(n, g, errDist="normal")
 R <- cor(d.normMat)
 R <- R[-L,-L]
@@ -39,10 +49,10 @@ bccd.fit1a <- BCCD(R, n, provide_detailed_output = TRUE, no_selection_bias = TRU
 
 pagm = as(true.pag, "matrix")
 
-write.table(pagm, 'data/original_pag.csv', row.names = FALSE, col.names = FALSE, sep = ',')
-write.table(bccd.fit1a$PAG, 'data/bccd_result.csv', row.names = FALSE, col.names = FALSE, sep = ',')
-write.table(bccd.fit1a$prob_L_max, 'data/lst.csv', row.names = FALSE, col.names = FALSE, sep = ',')
-write.table(bccd.fit1a$prob_L_use, 'data/lst_use.csv', row.names = FALSE, col.names = FALSE, sep = ',')
+write.table(pagm, paste('data/', location, '_original_pag.csv', sep=""), row.names = FALSE, col.names = FALSE, sep = ',')
+write.table(bccd.fit1a$PAG, paste('data/', location, '_bccd_result.csv', sep=""), row.names = FALSE, col.names = FALSE, sep = ',')
+write.table(bccd.fit1a$prob_L_max, paste('data/', location, '_lst.csv', sep=""), row.names = FALSE, col.names = FALSE, sep = ',')
+write.table(bccd.fit1a$prob_L_use, paste('data/', location, '_lst_use.csv', sep=""), row.names = FALSE, col.names = FALSE, sep = ',')
 
 #print(bccd.fit1a$PAG)
 

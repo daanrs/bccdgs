@@ -12,14 +12,19 @@ def score(mag, lst):
     """
     checks = np.array([statement(mag, s) for s in lst[:, 1:]])
 
-    # TODO: should this be on false checks?
-    false_checks = lst[checks]
-    sc = np.sum(
-        np.abs(
-            np.log(false_checks[:, 0])
-            -  np.log(1 - false_checks[:, 0])
+    true_c = lst[checks]
+    false_c = lst[~checks]
+
+    # if something with prob 0 is true, or prob 1 is false, then score = 0
+    if (true_c[:, 0] == 0).any() or (false_c[:, 0] == 1).any():
+        sc = 0
+    else:
+        sc = np.sum(
+            np.abs(
+                np.log(true_c[:, 0])
+                -  np.log(1 - true_c[:, 0])
+            )
         )
-    )
 
     return sc
 

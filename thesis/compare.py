@@ -1,7 +1,10 @@
-def show_comparison(g1, g2):
+import numpy as np
+
+def compare(g1, g2):
     score1 = compare_pags(g1, g2)
     score2 = compare_pags_noc(g1, g2)
-    return "(" + str(score1) + ", " + str(score2) + ")"
+    score3 = compare_skeletons(g1, g2)
+    return np.array([score1, score2, score3])
 
 def compare_pags(g1, g2):
     """
@@ -18,6 +21,13 @@ def compare_pags_noc(g1, g2):
     """
     return compare_pags(remove_circle_marks(g1.copy()),
                         remove_circle_marks(g2.copy()))
+
+def compare_skeletons(g1, g2):
+    g1 = g1.copy()
+    g2 = g2.copy()
+    g1[g1 != 0] = 1
+    g2[g2 != 0] = 1
+    return compare_pags(g1, g2)
 
 def remove_circle_marks(g):
     g[g == 3] = 0
