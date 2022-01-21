@@ -18,6 +18,22 @@ def pag_to_mag(g):
 
     return orient_with_topological_sort(g, tsort)
 
+def pag_to_pcalg(g):
+    #operation is symmetric
+    return pcalg_to_pag(g)
+
+def pcalg_to_pag(g):
+    # transpose
+    g = g.copy().T
+
+    # switch circles and tails
+    circles = g == 1
+    tails = g == 3
+    g[circles] = 3
+    g[tails] = 1
+
+    return g
+
 def orient_arcs(g):
     """
     Return a view with all semi-arcs turned into arcs.
@@ -81,41 +97,3 @@ def orient_with_topological_sort(g, tsort):
                 g[i, j] = 1
                 g[j, i] = 2
     return g
-
-def dag_to_mag(dag, latent_variables):
-    """
-    If Y latent, then change all X -> Y -> Z to X -> Z,
-    and X <- Y -> Z to X <-> Z, and then remove Y from graph.
-
-    We assume latent_variables is an array of indices, and dag is a
-    adjacency matrix.
-    """
-    # get dag in a nice format
-    dag = from_directed(dag)
-
-    # add necessary edges
-    for i in latent_variables:
-        for j in np.arange(0, len(dag)):
-            # if i -> j
-            if dag[i, j] == 1:
-                for k in np.arange(0, len(dag)):
-
-                    # if k -> i -> j and no edge k, j then k -> j
-                    if dag[k, i] == 1 and dag[k, j] == 0 and dag[j, k] == 0:
-                        dag[k, j] = 1
-                        dag[j, k] = 2
-
-                    # if k <- i -> j and no edge k, j then k <-> j
-                    elif dag[k, i] == 2 and dag[k, j] == 0 and dag[j, k] == 0:
-                        dag[k, j] = 2
-                        dag[j, k] = 2
-
-    # drop latent variables
-    # mask = np.ones(dag.shape, dtype=bool)
-    # mask[latent_variables] = False
-    # mask[:, latent_variables] = False
-
-    dag = np.delete(dag, latent_variables, axis=0)
-    dag = np.delete(dag, latent_variables, axis=1)
-
-    return dag

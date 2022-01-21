@@ -27,7 +27,7 @@ true.corr <- cov2cor(cov.mat)
 n <- 10^9
 true.pag <- dag2pag(suffStat = list(C = true.corr, n=n),
                     indepTest = gaussCItest,
-                    graph=g, L=L, alpha = 0.9999, verbose=TRUE)
+                    graph=g, L=L, alpha = 0.9999, verbose=FALSE)
 
 ### ---- Find PAG using fci-function --------------------------
 
@@ -40,17 +40,13 @@ R <- true.corr1
 
 bccd.fit1a <- BCCD(R, n, provide_detailed_output = TRUE, no_selection_bias = TRUE)
 
-gm = as(g, "matrix")
 pagm = as(true.pag, "matrix")
 
-write.table(L, 'data/latent_variables.csv', row.names = FALSE, col.names = FALSE, sep = ',')
-write.table(bccd.fit1a$PAG, 'data/bccd_result.csv', row.names = FALSE, col.names = FALSE, sep = ',')
-write.table(gm, 'data/original_dag.csv', row.names = FALSE, col.names = FALSE, sep = ',')
-write.table(pagm, 'data/original_pag.csv', row.names = FALSE, col.names = FALSE, sep = ',')
-write.table(bccd.fit1a$prob_L_max, 'data/lst.csv', row.names = FALSE, col.names = FALSE, sep = ',')
+write.table(pagm, 'data/in/original_pag.csv', row.names = FALSE, col.names = FALSE, sep = ',')
+write.table(bccd.fit1a$PAG, 'data/in/bccd_result.csv', row.names = FALSE, col.names = FALSE, sep = ',')
+write.table(bccd.fit1a$prob_L_max, 'data/in/lst.csv', row.names = FALSE, col.names = FALSE, sep = ',')
 
-print(gm)
-print(bccd.fit1a$PAG)
+#print(bccd.fit1a$PAG)
 
 #plot_PAG(bccd.fit1a$PAG)
 #plot(g)

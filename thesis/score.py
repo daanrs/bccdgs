@@ -1,4 +1,4 @@
-from conversion import numpy_to_gt, to_directed
+from thesis.conversion import numpy_to_gt, to_directed
 
 import graph_tool.all as gt
 import numpy as np
