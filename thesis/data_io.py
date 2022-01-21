@@ -3,10 +3,10 @@ from thesis.conversion import pcalg_to_pag, pag_to_pcalg
 import pandas as pd
 import numpy as np
 
-BCCD_RESULT = "data/in/bccd_result.csv"
-ORIGINAL_PAG = "data/in/original_pag.csv"
-LST_FILE = "data/in/lst.csv"
-RESULT_PAG = "data/out/pag.csv"
+BCCD_RESULT = "data/bccd_result.csv"
+ORIGINAL_PAG = "data/original_pag.csv"
+LST_FILE = "data/lst.csv"
+RESULT_PAG = "data/pag.csv"
 
 def read_pag(file):
     """Read the PAG from a csv file"""
@@ -32,7 +32,14 @@ def read_lst(file):
     df[:, 2:] -= 1
 
     # removing all the zero probability statements
-    df = df[df[:, 0] > 0.8]
+    # df = df[df[:, 0] > 0]
+    # df = df[df[:, 0] < 1]
+
+    # we do not handle these
+    df = df[df[:, 1] != -4]
+    df = df[df[:, 1] != -2]
+    df = df[df[:, 1] != 3]
+    df = df[df[:, 1] != 4]
 
     return df
 

@@ -14,5 +14,8 @@ subprocess.run(["Rscript", "R/mag_to_pag.R"])
 og = original_pag()
 g = result_pag()
 
+print(og)
+print(bccd)
+print(g)
 print("bccd: " + show_comparison(bccd, og))
 print("result: " + show_comparison(og, g))

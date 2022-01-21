@@ -82,6 +82,7 @@ def numpy_to_gt(matrix):
 
     edges = np.stack(np.nonzero(matrix), axis=1)
 
+    g.add_vertex(len(matrix))
     g.add_edge_list(edges)
 
     return g

@@ -39,12 +39,6 @@ def statement(mag, statement):
     """
     [c, x, y, z] = statement.astype(np.int64)
 
-    # we need do to this because the encoding in R starts at 1
-    # TODO: find a better way to do this
-    x -= 1
-    y -= 1
-    z -= 1
-
     if c == -3:
         b = ~(
             cofounder(mag, x, y)

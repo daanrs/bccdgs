@@ -20,7 +20,7 @@ def main(pag, lst, max_iter=1000, delta=0):
         n += 1
         print(str(score(mag, lst)) + " -> " + str(score(new_mag, lst)))
 
-    write_mag_as_pcalg(mag, 'data/out/mag.csv')
+    write_mag_as_pcalg(mag, 'data/mag.csv')
     return mag
 
 def get_new_mag(mag, lst):

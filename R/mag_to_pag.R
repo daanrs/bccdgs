@@ -1,7 +1,7 @@
 library(pcalg)
 
 #V <- c("X1","X2","X3","X4") # variable labels
-amat <- read.table('data/out/mag.csv', sep=',')
+amat <- read.table('data/mag.csv', sep=',')
 amat <- as.matrix(amat)
 #rownames(amat)<-V
 #colnames(amat)<-V
@@ -13,7 +13,7 @@ suffStat<-list(g=amat,verbose=FALSE)
 indepTest <- dsepAMTest
 fci.pag <- fci(suffStat,indepTest,alpha = 0.5, p=nrow(amat), verbose=FALSE)
 
-write.table(fci.pag@amat, 'data/out/pag.csv', row.names = FALSE, col.names = FALSE, sep = ',')
+write.table(fci.pag@amat, 'data/pag.csv', row.names = FALSE, col.names = FALSE, sep = ',')
 
 #cat('True MAG:\n')
 #print(amat)
