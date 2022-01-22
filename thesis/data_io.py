@@ -12,7 +12,7 @@ def read_pag(file):
 
     return df
 
-def read_lst(file):
+def read_lst(file, prob_interval):
     """Read logical statements from a csv file.
 
     TODO: this currently makes a bunch of changes to the input"""
@@ -26,9 +26,12 @@ def read_lst(file):
     # 0...n-1
     df[:, 2:] -= 1
 
-    # removing statements below a certain probability
-    minimum_prob = 0.5
-    df = df[df[:, 0] > minimum_prob]
+    # removing statements outside a certain probability interval
+    min_prob, max_prob = prob_interval
+    df = df[
+        (df[:, 0] > min_prob)
+        & (df[:, 0] < max_prob)
+    ]
 
     # we do not handle these
     df = df[df[:, 1] != -4]

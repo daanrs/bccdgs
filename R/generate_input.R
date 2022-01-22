@@ -1,7 +1,9 @@
 library(RUcausal)
 library(pcalg)
 
-location = commandArgs()[6]
+args = commandArgs()
+x = length(args)
+location = args[x]
 print(location)
 
 # nodes
@@ -47,9 +49,10 @@ R <- R[-L,-L]
 
 bccd.fit1a <- BCCD(R, n, provide_detailed_output = TRUE, no_selection_bias = TRUE)
 
-pagm = as(true.pag, "matrix")
+#pagm = as(true.pag, "matrix")
 
-write.table(pagm, paste('data/', location, '_original_pag.csv', sep=""), row.names = FALSE, col.names = FALSE, sep = ',')
+write.table(g@amat, paste('data/', location, '_original_pag.csv', sep=""), row.names = FALSE, col.names = FALSE, sep = ',')
+write.table(true.pag@amat, paste('data/', location, '_original_dag.csv', sep=""), row.names = FALSE, col.names = FALSE, sep = ',')
 write.table(bccd.fit1a$PAG, paste('data/', location, '_bccd_result.csv', sep=""), row.names = FALSE, col.names = FALSE, sep = ',')
 write.table(bccd.fit1a$prob_L_max, paste('data/', location, '_lst.csv', sep=""), row.names = FALSE, col.names = FALSE, sep = ',')
 write.table(bccd.fit1a$prob_L_use, paste('data/', location, '_lst_use.csv', sep=""), row.names = FALSE, col.names = FALSE, sep = ',')
