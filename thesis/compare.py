@@ -2,9 +2,10 @@ import numpy as np
 
 def compare(g1, g2):
     score1 = compare_pags(g1, g2)
-    score2 = compare_pags_noc(g1, g2)
-    score3 = compare_skeletons(g1, g2)
-    return np.array([score1, score2, score3])
+    # score2 = compare_pags_noc(g1, g2)
+    # score3 = compare_skeletons(g1, g2)
+    # return np.array([score1, score2, score3])
+    return score1
 
 def compare_pags(g1, g2):
     """
