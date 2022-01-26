@@ -25,7 +25,7 @@ def gen_new_mag(mag, lst, keep_skeleton):
                 mags = np.concatenate([mags, [new_mag]], axis=0)
 
                 mag_score = [score(m, lst) for m in mags]
-                best_mag = np.argmax(mag_score)
+                best_mag = np.argmin(mag_score)
                 new_mag = mags[best_mag]
 
     return new_mag

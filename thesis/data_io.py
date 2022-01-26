@@ -10,7 +10,7 @@ def read_pag(file):
         .to_numpy()
     )
 
-    return df
+    return pcalg_to_pag(df)
 
 def read_lst(file, prob_interval):
     """Read logical statements from a csv file.

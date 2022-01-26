@@ -20,8 +20,3 @@ indepTest <- dsepAMTest
 fci.pag <- fci(suffStat,indepTest,alpha = 0.5, p=nrow(amat), verbose=FALSE)
 
 write.table(fci.pag@amat, pag_location, row.names = FALSE, col.names = FALSE, sep = ',')
-
-#cat('True MAG:\n')
-#print(amat)
-#cat('PAG output by FCI:\n')
-#print(fci.pag@amat)

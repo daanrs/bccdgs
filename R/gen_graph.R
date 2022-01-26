@@ -17,7 +17,7 @@ hid = 2
 
 ##
 L_num <- sample.int(hid, 1)
-L <- sample.int(v, hid)
+L <- sample.int(v, L_num)
 
 g <- randomDAG(v, prob = prob)
 #graph::nodes(g) # "1" "2" ... "10"

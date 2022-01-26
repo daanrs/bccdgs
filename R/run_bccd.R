@@ -21,7 +21,18 @@ d <- rmvDAG(n, g, errDist="normal")
 R <- cor(d)
 R <- R[-L,-L]
 
-bccd.fit1a <- BCCD(R, n, provide_detailed_output = TRUE, no_selection_bias = TRUE)
+bccd.fit <- BCCD(R, n, provide_detailed_output = TRUE, no_selection_bias = TRUE)
 
-write.table(bccd.fit1a$PAG, pag_output, row.names = FALSE, col.names = FALSE, sep = ',')
-write.table(bccd.fit1a$prob_L_max, lst_output, row.names = FALSE, col.names = FALSE, sep = ',')
+bpag <- bccd.fit$PAG
+
+# transform to pcalg style
+bpag <- t(bpag)
+
+circles <- bpag == 1
+tails <- bpag == 3
+
+bpag[circles] <- 3
+bpag[tails] <- 1
+
+write.table(bpag, pag_output, row.names = FALSE, col.names = FALSE, sep = ',')
+write.table(bccd.fit$prob_L_max, lst_output, row.names = FALSE, col.names = FALSE, sep = ',')

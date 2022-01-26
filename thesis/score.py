@@ -7,25 +7,26 @@ def score(mag, lst):
     """
     Score how well a mag fits to lst.
 
-    This sums statements which return true, with the value being
+    This sums statements which return false, with the value being
     abs(ln(p) - ln(1-p)).
+
+    Higher score is better because log of a low probability gives a higher
+    absolute value
     """
     checks = np.array([statement(mag, s) for s in lst[:, 1:]])
 
-    true_c = lst[checks]
-    false_c = lst[~checks]
+    true_c = lst[checks][:, 0]
+    false_c = lst[~checks][:, 0]
+    # print(false_c)
 
     # if something with prob 0 is true, or prob 1 is false, then score = 0
-    if (true_c[:, 0] == 0).any() or (false_c[:, 0] == 1).any():
-        sc = 0
+    if (true_c == 0).any() or (false_c == 1).any():
+        sc = -np.inf
     else:
         sc = np.sum(
-            np.abs(
-                np.log(true_c[:, 0])
-                -  np.log(1 - true_c[:, 0])
-            )
+                np.log(false_c) - np.log(1 - false_c)
         )
-
+    # print(sc)
     return sc
 
 def statement(mag, statement):
@@ -45,21 +46,21 @@ def statement(mag, statement):
     [c, x, y, z] = statement.astype(np.int64)
 
     if c == -3:
-        b = ~(
-            cofounder(mag, x, y)
-            or ancestor(mag, x, y)
-            or ancestor(mag, y, x)
+        b = not (
+            cofounder(mag, x, z)
+            or ancestor(mag, x, z)
+            or ancestor(mag, z, x)
         )
     elif c == -1:
-        b = ~ancestor(mag, x, y)
+        b = not ancestor(mag, x, y)
     elif c == 0:
-        b = ~edge(mag, x, y)
+        b = not edge(mag, x, z)
     elif c == 1:
         b = ancestor(mag, x, y) or ancestor(mag, x, z)
     elif c == 2:
         b = ancestor(mag, x, y)
     else:
-        b = True
+        raise ValueError('Statement type not in (-3, -1, 0, 1, 2)')
     return b
 
 def ancestor(mag, x, y):
@@ -68,11 +69,10 @@ def ancestor(mag, x, y):
     g = gt.transitive_closure(numpy_to_gt(to_directed(mag.copy())))
 
     # TODO: make this more efficient
-    g = gt.adjacency(g).toarray()
+    g = gt.adjacency(g).toarray().T
 
-    # TODO: maybe g[x, y]?
     if g.size > 0:
-        return (g[y, x] == 1)
+        return (g[x, y] == 1)
     else:
         return False
 
@@ -88,14 +88,12 @@ def cofounder(mag, x, y):
     g = gt.transitive_closure(numpy_to_gt(to_directed(mag.copy())))
 
     # TODO: make this more efficient
-    g = gt.adjacency(g).toarray()
+    g = gt.adjacency(g).toarray().T
 
-    # TODO: is this right?
     b = False
     if g.size > 0:
-        for _ in np.arange(g.shape[0]):
-            # TODO: should this be g[b, y] instead?
-            if (g[x, b] == 1) and (g[y, b] == 1):
+        for i in np.arange(g.shape[0]):
+            if (g[i, x] == 1) and (g[i, y] == 1):
                 b = True
 
     return b
