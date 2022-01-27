@@ -8,36 +8,55 @@ import numpy as np
 import pandas as pd
 import subprocess
 
+# HIDDEN      = "1"
+# PROBABILITY = "0.6"
+# NODES       = "5"
+
+# HIDDEN      = "2"
+# PROBABILITY = "0.25"
+# NODES       = "10"
+
+HIDDEN      = "3"
+PROBABILITY = "0.16"
+NODES       = "15"
+
+# HIDDEN      = "4"
+# PROBABILITY = "0.12"
+# NODES       = "20"
+
 def gen(m, keep_file=True):
     for i in m:
-        p = Path(f"data/{i:03}/dag.csv")
+        p = Path(f"data/{NODES}/{i:03}/dag.csv")
         if not p.is_file() or not keep_file:
-            p.parent.mkdir(exist_ok = True)
+            p.parent.mkdir(parents = True, exist_ok = True)
             subprocess.run([
                 "Rscript",
                 "R/gen_graph.R",
-                f"data/{i:03}/lv.csv",
-                f"data/{i:03}/dag.csv",
-                f"data/{i:03}/pag.csv"
+                HIDDEN,
+                PROBABILITY,
+                NODES,
+                f"data/{NODES}/{i:03}/lv.csv",
+                f"data/{NODES}/{i:03}/dag.csv",
+                f"data/{NODES}/{i:03}/pag.csv"
             ])
 
 def bccd(m, n, keep_file=True):
     for i in m:
         for j in n:
-            if not Path(f"data/{i:03}/{j:07}_bccd.csv").is_file() or not keep_file:
+            if not Path(f"data/{NODES}/{i:03}/{j:07}_bpag.csv").is_file() or not keep_file:
                 subprocess.run([
                     "Rscript",
                     "R/run_bccd.R",
                     f"{j:07}",
-                    f"data/{i:03}/lv.csv",
-                    f"data/{i:03}/dag.csv",
-                    f"data/{i:03}/{j:07}_bccd.csv",
-                    f"data/{i:03}/{j:07}_lst.csv",
+                    f"data/{NODES}/{i:03}/lv.csv",
+                    f"data/{NODES}/{i:03}/dag.csv",
+                    f"data/{NODES}/{i:03}/{j:07}_bccd.csv",
+                    f"data/{NODES}/{i:03}/{j:07}_lst.csv",
                 ],)
 
-                bccd_location = f"data/{i:03}/{j:07}_bccd.csv"
-                bmag_location = f"data/{i:03}/{j:07}_bmag.csv"
-                bpag_location = f"data/{i:03}/{j:07}_bpag.csv"
+                bccd_location = f"data/{NODES}/{i:03}/{j:07}_bccd.csv"
+                bmag_location = f"data/{NODES}/{i:03}/{j:07}_bmag.csv"
+                bpag_location = f"data/{NODES}/{i:03}/{j:07}_bpag.csv"
 
                 pag_to_mag(bccd_location, bmag_location)
                 mag_to_pag(bmag_location, bpag_location)
@@ -61,16 +80,16 @@ def pag_to_mag(pag_location, mag_location):
 def run(m, n, prob_interval, keep_skeleton, keep_file=True):
     for i in m:
         for j in n:
-            mag_location = f"data/{prob_interval}/{keep_skeleton}/{i:03}/{j:07}_mag.csv"
-            pag_location = f"data/{prob_interval}/{keep_skeleton}/{i:03}/{j:07}_pag.csv"
-            bmag_location = f"data/{i:03}/{j:07}_bmag.csv"
-            lst_location = f"data/{i:03}/{j:07}_lst.csv"
+            mag_location = f"data/{prob_interval}/{keep_skeleton}/{NODES}/{i:03}/{j:07}_mag.csv"
+            pag_location = f"data/{prob_interval}/{keep_skeleton}/{NODES}/{i:03}/{j:07}_pag.csv"
+            bmag_location = f"data/{NODES}/{i:03}/{j:07}_bmag.csv"
+            lst_location = f"data/{NODES}/{i:03}/{j:07}_lst.csv"
 
             if not Path(pag_location).is_file() or not keep_file:
                 # if mag is empty we must generate new model and re-do
                 # bccd and run on that part
                 while Path(bmag_location).read_text() == '':
-                    print("regenerating {i}")
+                    print("regenerating {NODES}/{i}")
                     gen([i], keep_file=False)
                     bccd([i], n, keep_file=False)
                     run([i], n, prob_interval, keep_skeleton,
@@ -103,24 +122,27 @@ def compare_results(m, n, p, s):
 
         df = df.append(df2)
     # df = df.set_index("n").stack().unstack(0)
-
-    # path = Path(f"data/results/{p}_{s}.csv")
-    # path.parent.mkdir(exist_ok = True)
-    # df.to_csv(f"data/results/{p}_{s}.csv", index=False)
     return df
 
-def bccd_result(m, n):
-    g = read_pag(f"data/{m:03}/{n:07}_bccd.csv")
+def write_results(m, n, p, s):
+    df = compare_results(m, n, p, s)
+    path = Path(f"data/results/{NODES}_{p}_{s}.csv")
+    path.parent.mkdir(exist_ok = True)
+    df.to_csv(path, index=False)
+    return df
+
+def bccd_result(i, j):
+    g = read_pag(f"data/{NODES}/{i:03}/{j:07}_bccd.csv")
     return g
 
-def bpag(m, n):
-    g = read_pag(f"data/{m:03}/{n:07}_bpag.csv")
+def bpag(i, j):
+    g = read_pag(f"data/{NODES}/{i:03}/{j:07}_bpag.csv")
     return g
 
-def original_pag(m):
-    g = read_pag(f"data/{m:03}/pag.csv")
+def original_pag(i):
+    g = read_pag(f"data/{NODES}/{i:03}/pag.csv")
     return g
 
-def result_pag(m, n, p, s):
-    g = read_pag(f"data/{p}/{s}/{m:03}/{n:07}_pag.csv")
+def result_pag(i, j, p, s):
+    g = read_pag(f"data/{p}/{s}/{NODES}/{i:03}/{j:07}_pag.csv")
     return g

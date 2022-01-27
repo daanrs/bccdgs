@@ -2,18 +2,20 @@ library(pcalg)
 
 args = commandArgs()
 x = length(args)
+hid = as.integer(args[x-5])
+prob = as.double(args[x-4])
+v = as.integer(args[x-3])
 lv_location = args[x-2]
 dag_location = args[x-1]
 pag_location = args[x]
 print(pag_location)
 
 # nodes
-v = 10
+#v = 10
 # probability of edge
 #prob = 0.25
-prob = 0.25
 # max hidden
-hid = 2
+#hid = 2
 
 ##
 L_num <- sample.int(hid, 1)

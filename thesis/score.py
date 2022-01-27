@@ -15,18 +15,25 @@ def score(mag, lst):
     """
     checks = np.array([statement(mag, s) for s in lst[:, 1:]])
 
-    true_c = lst[checks][:, 0]
-    false_c = lst[~checks][:, 0]
-    # print(false_c)
+    # if checks > 0 this makes sense, otherwise everything is false
+    if len(checks) > 0:
+        true_c = lst[checks][:, 0]
+        false_c = lst[~checks][:, 0]
+    else:
+        false_c = lst[:, 0]
+        sc = np.abs(np.sum(np.log(1 - false_c)))
+        return sc
 
     # if something with prob 0 is true, or prob 1 is false, then score = 0
     if (true_c == 0).any() or (false_c == 1).any():
         sc = -np.inf
     else:
-        sc = np.sum(
-                np.log(false_c) - np.log(1 - false_c)
+        # sc = np.sum(
+                # np.log(false_c) - np.log(1 - false_c)
+        # )
+        sc = np.abs(
+            np.sum(np.log(true_c)) + np.sum(np.log(1 - false_c))
         )
-    # print(sc)
     return sc
 
 def statement(mag, statement):
