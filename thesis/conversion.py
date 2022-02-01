@@ -1,23 +1,6 @@
 import graph_tool.all as gt
 import numpy as np
 
-# TODO: ensure everything is .copy()'d iff necessary
-
-def pag_to_mag(g):
-    """
-    Turn a PAG into some reasonable MAG.
-
-    This MAG may not actually belong to the PAG's equivalence class.
-
-    TODO: generate multiple alternatives
-    """
-    g = orient_arcs(g)
-    g_directed = to_directed(g.copy())
-
-    tsort = gt.topological_sort(numpy_to_gt(g_directed))
-
-    return orient_with_topological_sort(g, tsort)
-
 def pag_to_pcalg(g):
     #operation is symmetric
     return pcalg_to_pag(g)
@@ -32,25 +15,6 @@ def pcalg_to_pag(g):
     g[circles] = 3
     g[tails] = 1
 
-    return g
-
-def orient_arcs(g):
-    """
-    Return a view with all semi-arcs turned into arcs.
-
-    o-> and o-- are turned into --> and <-- respectively, o-o are left as
-    they are.
-    """
-    # we select all circles
-    circles = g == 3
-
-    # we transpose the array to check the other part of the edge
-    arrows_t = g.T == 2
-    tails_t = g.T == 1
-
-    # select edges with circles and arrows/tails, then orient circle marks
-    g[circles & arrows_t] = 1
-    g[circles & tails_t] = 2
     return g
 
 def to_directed(g):
@@ -87,14 +51,20 @@ def numpy_to_gt(matrix):
 
     return g
 
-def orient_with_topological_sort(g, tsort):
+def dag_to_ancestral(dag):
     """
-    Return a view of the PAG with all o-o circle edges turned into
-    arcs according to the topological sort.
+    Return the transitive closure of a dag
     """
-    for i in tsort:
-        for j in np.arange(0, len(g)):
-            if g[i, j] == 3 and g[j, i] == 3:
-                g[i, j] = 1
-                g[j, i] = 2
+    g = gt.transitive_closure(numpy_to_gt(dag.copy()))
+
+    # TODO: make this more efficient
+    g = gt.adjacency(g).toarray().T
     return g
+
+def remove_latent_variables(dag, lv):
+    """
+    Remove latent variables from a dag
+    """
+    dag = np.delete(dag, lv, axis=0)
+    dag = np.delete(dag, lv, axis=1)
+    return dag

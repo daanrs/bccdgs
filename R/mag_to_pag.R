@@ -17,6 +17,6 @@ suffStat<-list(g=amat,verbose=FALSE)
 # Derive PAG that represents the Markov equivalence class of the MAG with the FCI algorithm
 # Make use of d-separation oracle as "independence test"
 indepTest <- dsepAMTest
-fci.pag <- fci(suffStat,indepTest,alpha = 0.5, p=nrow(amat), verbose=FALSE)
+fci.pag <- fci(suffStat,indepTest,alpha = 0.5, p=nrow(amat), verbose=FALSE, selectionBias=FALSE)
 
 write.table(fci.pag@amat, pag_location, row.names = FALSE, col.names = FALSE, sep = ',')

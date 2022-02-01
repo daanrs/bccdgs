@@ -1,6 +1,5 @@
-from thesis.conversion import numpy_to_gt, to_directed
+from thesis.conversion import dag_to_ancestral, to_directed
 
-import graph_tool.all as gt
 import numpy as np
 
 def score(mag, lst):
@@ -72,11 +71,7 @@ def statement(mag, statement):
 
 def ancestor(mag, x, y):
     """Check if x is an ancestor of y."""
-    # get transitive closure graph
-    g = gt.transitive_closure(numpy_to_gt(to_directed(mag.copy())))
-
-    # TODO: make this more efficient
-    g = gt.adjacency(g).toarray().T
+    g = dag_to_ancestral(to_directed(mag.copy()))
 
     if g.size > 0:
         return (g[x, y] == 1)
@@ -92,10 +87,7 @@ def edge(mag, x, y):
 
 def cofounder(mag, x, y):
     """ Check if there is a cofounder between x and y."""
-    g = gt.transitive_closure(numpy_to_gt(to_directed(mag.copy())))
-
-    # TODO: make this more efficient
-    g = gt.adjacency(g).toarray().T
+    g = dag_to_ancestral(to_directed(mag.copy()))
 
     b = False
     if g.size > 0:

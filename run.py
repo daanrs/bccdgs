@@ -1,6 +1,10 @@
 from thesis.main import main
-from thesis.data_io import write_mag_as_pcalg, read_pag, read_lst
-from thesis.compare import compare
+from thesis.data_io import (
+    write_mag_as_pcalg,
+    read_pag,
+    read_lst, read_lv, read_dag)
+from thesis.compare import compare, compare_causal_structure
+from thesis.conversion import remove_latent_variables, dag_to_ancestral
 
 from pathlib import Path
 
@@ -12,13 +16,13 @@ import subprocess
 # PROBABILITY = "0.6"
 # NODES       = "5"
 
-# HIDDEN      = "2"
-# PROBABILITY = "0.25"
-# NODES       = "10"
+HIDDEN      = "2"
+PROBABILITY = "0.25"
+NODES       = "10"
 
-HIDDEN      = "3"
-PROBABILITY = "0.16"
-NODES       = "15"
+# HIDDEN      = "3"
+# PROBABILITY = "0.16"
+# NODES       = "15"
 
 # HIDDEN      = "4"
 # PROBABILITY = "0.12"
@@ -50,6 +54,7 @@ def bccd(m, n, keep_file=True):
                     f"{j:07}",
                     f"data/{NODES}/{i:03}/lv.csv",
                     f"data/{NODES}/{i:03}/dag.csv",
+                    f"data/{NODES}/{i:03}/{j:07}_fci.csv",
                     f"data/{NODES}/{i:03}/{j:07}_bccd.csv",
                     f"data/{NODES}/{i:03}/{j:07}_lst.csv",
                 ],)
@@ -124,6 +129,26 @@ def compare_results(m, n, p, s):
     # df = df.set_index("n").stack().unstack(0)
     return df
 
+def compare_causal(m, n, p, s):
+    df = pd.DataFrame(columns=["n", "bccd", "result", "bccd_to_mag_to_pag"])
+    for j in n:
+        results = np.array([
+            [compare_causal_structure(bccd_result(i, j), ancestral_dag(i)),
+             compare_causal_structure(bpag(i, j), ancestral_dag(i)),
+             compare_causal_structure(result_pag(i, j, p, s), ancestral_dag(i))]
+            for i in m ])
+
+        # c = np.isnan(results).any(axis=(1, 2))
+        c = np.isnan(results).any(axis=(1))
+        scores = results[~c].mean(axis=0)
+        df2 = pd.DataFrame([[j, scores[0], scores[1], scores[2]]]
+                           , columns=["n", "bccd", "bccd_to_mag_to_pag", "result"]
+                           )
+
+        df = df.append(df2)
+    # df = df.set_index("n").stack().unstack(0)
+    return df
+
 def write_results(m, n, p, s):
     df = compare_results(m, n, p, s)
     path = Path(f"data/results/{NODES}_{p}_{s}.csv")
@@ -141,6 +166,13 @@ def bpag(i, j):
 
 def original_pag(i):
     g = read_pag(f"data/{NODES}/{i:03}/pag.csv")
+    return g
+
+def ancestral_dag(i):
+    g = read_dag(f"data/{NODES}/{i:03}/dag.csv")
+    lv = read_lv(f"data/{NODES}/{i:03}/lv.csv")
+
+    g = remove_latent_variables(dag_to_ancestral(g), lv)
     return g
 
 def result_pag(i, j, p, s):

@@ -4,9 +4,10 @@ library(pcalg)
 args = commandArgs()
 x = length(args)
 
-n = as.integer(args[x-4])
-lv_location = args[x-3]
-dag_location = args[x-2]
+n = as.integer(args[x-5])
+lv_location = args[x-4]
+dag_location = args[x-3]
+fci_output = args[x-2]
 pag_output = args[x-1]
 lst_output = args[x]
 print(n)
@@ -36,3 +37,9 @@ bpag[tails] <- 1
 
 write.table(bpag, pag_output, row.names = FALSE, col.names = FALSE, sep = ',')
 write.table(bccd.fit$prob_L_max, lst_output, row.names = FALSE, col.names = FALSE, sep = ',')
+
+suffstat <- list(C = R, n = n)
+fci.pag <- fci(suffstat, gaussCItest, alpha = 0.05, p = nrow(R),
+verbose=FALSE, selectionBias=FALSE)
+
+write.table(fci.pag@amat, fci_output, row.names = FALSE, col.names = FALSE, sep = ',')

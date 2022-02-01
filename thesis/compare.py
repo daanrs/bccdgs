@@ -1,5 +1,3 @@
-import numpy as np
-
 def compare(g1, g2):
     score1 = compare_pags(g1, g2)
     # score2 = compare_pags_noc(g1, g2)
@@ -33,3 +31,19 @@ def compare_skeletons(g1, g2):
 def remove_circle_marks(g):
     g[g == 3] = 0
     return g
+
+def compare_causal_structure(pag, ancestral_dag):
+    """
+    Compare the causal structure of a pag with its ancestral dag.
+    The ancestral dag is the result of
+    remove_latent_variables(dag_to_ancestral(dag)).
+    """
+    arrows = pag == 2
+    tails = pag == 1
+
+    correct_tails = (ancestral_dag[tails] == 1).sum()
+    correct_arrows = (ancestral_dag[arrows] == 0).sum()
+
+    total = (tails | arrows).sum()
+
+    return (correct_tails + correct_arrows)/total

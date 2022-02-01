@@ -12,6 +12,14 @@ def read_pag(file):
 
     return pcalg_to_pag(df)
 
+def read_dag(file):
+    """Read the PAG from a csv file"""
+    df = (
+        pd.read_csv(file, sep=',', header=None)
+        .to_numpy()
+    )
+    return df
+
 def read_lst(file, prob_interval):
     """Read logical statements from a csv file.
 
@@ -46,3 +54,8 @@ def write_mag_as_pcalg(g, file):
     pd.DataFrame(g).to_csv(file, header=False, index = False)
     return
 
+def read_lv(file):
+    """
+    Read latent variables
+    """
+    return pd.read_csv(file, header=None).to_numpy().flatten() - 1
