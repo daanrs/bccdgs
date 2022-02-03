@@ -7,10 +7,9 @@ x = length(args)
 n = as.integer(args[x-5])
 lv_location = args[x-4]
 dag_location = args[x-3]
-fci_output = args[x-2]
+cor_output = args[x-2]
 pag_output = args[x-1]
 lst_output = args[x]
-print(n)
 
 L <- read.table(lv_location, sep = ',')$V1
 amat <- read.table(dag_location, sep =',')
@@ -35,11 +34,12 @@ tails <- bpag == 3
 bpag[circles] <- 3
 bpag[tails] <- 1
 
+write.table(R, cor_output, row.names=FALSE, col.names=FALSE, sep=',')
 write.table(bpag, pag_output, row.names = FALSE, col.names = FALSE, sep = ',')
 write.table(bccd.fit$prob_L_max, lst_output, row.names = FALSE, col.names = FALSE, sep = ',')
 
-suffstat <- list(C = R, n = n)
-fci.pag <- fci(suffstat, gaussCItest, alpha = 0.05, p = nrow(R),
-verbose=FALSE, selectionBias=FALSE)
+#suffstat <- list(C = R, n = n)
+#fci.pag <- fci(suffstat, gaussCItest, alpha = 0.05, p = nrow(R),
+#verbose=FALSE, selectionBias=FALSE)
 
-write.table(fci.pag@amat, fci_output, row.names = FALSE, col.names = FALSE, sep = ',')
+#write.table(fci.pag@amat, fci_output, row.names = FALSE, col.names = FALSE, sep = ',')

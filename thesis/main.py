@@ -18,4 +18,4 @@ def main(mag, lst, max_iter=1000, keep_skeleton=True):
         n += 1
         print(str(score(mag, lst)) + " -> " + str(score(new_mag, lst)))
 
-    return mag
+    return mag, n
