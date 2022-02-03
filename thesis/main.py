@@ -2,7 +2,7 @@ from thesis.new_mag import gen_new_mag
 from thesis.score import score
 from thesis.data_io import *
 
-def main(mag, lst, max_iter=1000, keep_skeleton=True):
+def main(mag, lst, keep_skeleton=False, max_iter=1000):
     # mag = pag_to_mag(pag.copy())
     mag = mag.copy()
     new_mag = gen_new_mag(mag, lst, keep_skeleton)

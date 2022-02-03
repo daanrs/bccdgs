@@ -20,7 +20,7 @@ def full_run():
     samples = 2 ** np.arange(7, 18)
     skel = False
 
-    pool = Pool(6)
+    pool = Pool(7)
 
     args_gen = [(n, p, m, model) for model in models for n, p, m in
                 model_args]
@@ -30,9 +30,9 @@ def full_run():
                  model_args]
     pool.starmap(bccd, agrs_bccd)
 
-    # we must complete a full run before we do anything in parallel
-    # because of how erroneous bccd_mags are handled in run
-    # (see while .. == "")
+    # we must complete a full run per model_arg before we do anything in
+    # parallel because of how erroneous bccd_mags are handled in run (see
+    # while .. == "")
     args_run = [(n, p, m, model, samples, (0.5, 1), skel) for model in
                 models for n, p, m in model_args]
     pool.starmap(run, args_run)
@@ -113,7 +113,7 @@ def run(nodes, edge_prob, max_hidden, i, n, prob_interval, keep_skeleton, keep_f
 
             bmag = read_pag(bmag_location)
             lst = read_lst(lst_location, prob_interval)
-            mag, iterations = main(bmag, lst, keep_skeleton)
+            mag, iterations = main(bmag, lst, keep_skeleton=keep_skeleton)
 
             # save the number of iterations
             pd.Series(iterations).to_csv(iter_location, header=False, index=False)

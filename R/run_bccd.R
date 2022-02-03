@@ -37,9 +37,3 @@ bpag[tails] <- 1
 write.table(R, cor_output, row.names=FALSE, col.names=FALSE, sep=',')
 write.table(bpag, pag_output, row.names = FALSE, col.names = FALSE, sep = ',')
 write.table(bccd.fit$prob_L_max, lst_output, row.names = FALSE, col.names = FALSE, sep = ',')
-
-#suffstat <- list(C = R, n = n)
-#fci.pag <- fci(suffstat, gaussCItest, alpha = 0.05, p = nrow(R),
-#verbose=FALSE, selectionBias=FALSE)
-
-#write.table(fci.pag@amat, fci_output, row.names = FALSE, col.names = FALSE, sep = ',')
