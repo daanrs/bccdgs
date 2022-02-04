@@ -67,3 +67,35 @@ def remove_latent_variables(dag, lv):
     dag = np.delete(dag, lv, axis=0)
     dag = np.delete(dag, lv, axis=1)
     return dag
+
+def dag_to_mag(dag, lv):
+    """
+    If Y latent, then change all X -> Y -> Z to X -> Z,
+    and X <- Y -> Z to X <-> Z, and then remove Y from graph.
+
+    We assume latent_variables is an array of indices, and dag is a
+    adjacency matrix.
+    """
+    # get dag in a nice format
+    dag = from_directed(dag)
+
+    # add necessary edges
+    for i in lv:
+        for j in np.arange(0, len(dag)):
+            # if i -> j
+            if dag[i, j] == 1:
+                for k in np.arange(0, len(dag)):
+
+                    # if k -> i -> j and no edge k, j then k -> j
+                    if dag[k, i] == 1 and dag[k, j] == 0 and dag[j, k] == 0:
+                        dag[k, j] = 1
+                        dag[j, k] = 2
+
+                    # if k <- i -> j and no edge k, j then k <-> j
+                    elif dag[k, i] == 2 and dag[k, j] == 0 and dag[j, k] == 0:
+                        dag[k, j] = 2
+                        dag[j, k] = 2
+
+    dag = remove_latent_variables(dag, lv)
+
+    return dag
