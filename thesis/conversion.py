@@ -57,7 +57,6 @@ def dag_to_ancestral(dag):
     """
     g = gt.transitive_closure(numpy_to_gt(dag.copy()))
 
-    # TODO: make this more efficient
     g = gt.adjacency(g).toarray().T
     return g
 

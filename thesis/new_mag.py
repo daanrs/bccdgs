@@ -8,12 +8,11 @@ def gen_new_mag(mag, lst, keep_skeleton):
     """
     Generate all valid mags which can be created through changing a single
     edge.
-
-    TODO: implement this more efficiently.
     """
-    # TODO: document this step
     new_mag = mag.copy()
 
+    # we loop over all possible (i, j) edges, making sure not to double
+    # count (i, j) and (j, i)
     n = mag.shape[0]
     for i in np.arange(1, n):
         for j in np.arange(0, i):
@@ -25,7 +24,7 @@ def gen_new_mag(mag, lst, keep_skeleton):
                 mags = np.concatenate([mags, [new_mag]], axis=0)
 
                 mag_score = [score(m, lst) for m in mags]
-                best_mag = np.argmin(mag_score)
+                best_mag = np.argmax(mag_score)
                 new_mag = mags[best_mag]
 
     return new_mag
@@ -77,13 +76,15 @@ def adjacent_mags(mag, i, j, keep_skeleton):
 
 
 def almost_directed_cycle(mag):
-    """Check if a mag has any (almost) directed cycles"""
-    mag_directed = to_directed(mag.copy())
-    g = numpy_to_gt(mag_directed)
-
+    """
+    Check if a mag has any (almost) directed cycles
+    """
+    # we get all possible directed paths from the mags transitive closure
+    g = numpy_to_gt(to_directed(mag.copy()))
     paths = gt.transitive_closure(g).get_edges()
 
-    # TODO: why does this indexing work exactly
+    # we use numpy advanced indexing to check for every path i -> j
+    # whether mag[i, j] = 2; that is whether i <-* j in the mag
     cycles = (mag[paths[:, 0], paths[:, 1]] == 2).any()
 
     return cycles

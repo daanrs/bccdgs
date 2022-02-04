@@ -1,7 +1,6 @@
 from thesis.conversion import pcalg_to_pag, pag_to_pcalg
 
 import pandas as pd
-import numpy as np
 
 def read_pag(file):
     """Read the PAG from a csv file"""
@@ -23,7 +22,7 @@ def read_dag(file):
 def read_lst(file, prob_interval):
     """Read logical statements from a csv file.
 
-    TODO: this currently makes a bunch of changes to the input"""
+    TODO: this makes a bunch of changes to the input"""
     df = (
         pd.read_csv(file, sep=',', header=None)
         .to_numpy()

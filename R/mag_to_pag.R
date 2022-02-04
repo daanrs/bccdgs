@@ -4,7 +4,6 @@ args = commandArgs()
 n = length(args)
 mag_location = args[n-1]
 pag_location = args[n]
-print(pag_location)
 
 #V <- c("X1","X2","X3","X4") # variable labels
 amat <- read.table(mag_location, sep=',')

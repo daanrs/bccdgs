@@ -6,34 +6,22 @@ def score(mag, lst):
     """
     Score how well a mag fits to lst.
 
-    This sums statements which return false, with the value being
-    abs(ln(p) - ln(1-p)).
-
-    Higher score is better because log of a low probability gives a higher
-    absolute value
+    We use the score log(true_checks) + log(1 - false_checks), which is
+    the log-hikelihood of this happening, and so higher is better.
     """
+    # we check which statments are correct
+    # since lst = [prob, statement] we index it [:, 1:]
     checks = np.array([statement(mag, s) for s in lst[:, 1:]])
 
-    # if checks > 0 this makes sense, otherwise everything is false
-    if len(checks) > 0:
+    # if checks is empty everything is false
+    if len(checks) == 0:
+        true_c = []
+        false_c = lst[:, 0]
+    else:
         true_c = lst[checks][:, 0]
         false_c = lst[~checks][:, 0]
-    else:
-        false_c = lst[:, 0]
-        sc = np.abs(np.sum(np.log(1 - false_c)))
-        return sc
 
-    # if something with prob 0 is true, or prob 1 is false, then score = 0
-    if (true_c == 0).any() or (false_c == 1).any():
-        sc = -np.inf
-    else:
-        # sc = np.sum(
-                # np.log(false_c) - np.log(1 - false_c)
-        # )
-        sc = np.abs(
-            np.sum(np.log(true_c)) + np.sum(np.log(1 - false_c))
-        )
-    return sc
+    return np.sum(np.log(true_c)) + np.sum(np.log(1 - false_c))
 
 def statement(mag, statement):
     """
@@ -73,26 +61,18 @@ def ancestor(mag, x, y):
     """Check if x is an ancestor of y."""
     g = dag_to_ancestral(to_directed(mag.copy()))
 
-    if g.size > 0:
-        return (g[x, y] == 1)
-    else:
-        return False
+    return (g[x, y] == 1)
 
 def edge(mag, x, y):
     """Check if there is an edge between x and y."""
-    if mag.size > 0:
-        return (mag[x, y] != 0)
-    else:
-        return False
+    return (mag[x, y] != 0)
 
 def cofounder(mag, x, y):
-    """ Check if there is a cofounder between x and y."""
+    """Check if there is a cofounder between x and y."""
     g = dag_to_ancestral(to_directed(mag.copy()))
 
-    b = False
-    if g.size > 0:
-        for i in np.arange(g.shape[0]):
-            if (g[i, x] == 1) and (g[i, y] == 1):
-                b = True
+    for i in np.arange(g.shape[0]):
+        if (g[i, x] == 1) and (g[i, y] == 1):
+            return True
 
-    return b
+    return False

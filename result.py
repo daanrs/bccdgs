@@ -10,26 +10,28 @@ def compile_result(
     models = np.arange(100),
     samples = 2 ** np.arange(7, 18),
     min_probs = [0.5],
-    skel = False,
+    skel = [False],
 ):
     df = pd.DataFrame(
         {
             "nodes" : n,
             "edge_prob" : prob,
             "model" : model,
+            "skel" : sk,
             "samples" : sample,
             "min_prob" : min_prob,
             "original_pag" : original_pag(n, prob, hid, model),
             "ancestral_dag" : ancestral_dag(n, prob, hid, model),
-            "iter" : iterations(n, prob, hid, model, sample, (min_prob, 1), skel),
+            "iter" : iterations(n, prob, hid, model, sample, (min_prob, 1), sk),
             "bccd" : bccd_result(n, prob, hid, model, sample),
             "bccd_magpag" : bpag(n, prob, hid, model, sample),
-            "bccd_opt" : result_pag(n, prob, hid, model, sample, (min_prob, 1), skel)
+            "bccd_opt" : result_pag(n, prob, hid, model, sample, (min_prob, 1), sk)
         }
         for n, prob, hid in model_args
         for model in models
         for sample in samples
         for min_prob in min_probs
+        for sk in skel
     )
     return scores_df(df)
 

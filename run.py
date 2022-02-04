@@ -20,7 +20,7 @@ def full_run():
     samples = 2 ** np.arange(7, 18)
     skel = False
 
-    pool = Pool(7)
+    pool = Pool(8)
 
     args_gen = [(n, p, m, model) for model in models for n, p, m in
                 model_args]
@@ -37,11 +37,15 @@ def full_run():
                 models for n, p, m in model_args]
     pool.starmap(run, args_run)
 
+    args_skel_run = [
+        (10, 0.25, 2, model, samples, (0.5, 1), True) for model in models
+    ]
+    pool.starmap(run, args_skel_run)
+
     args_diff_prob_run = [
-        (10, 0.3, 2, model, samples, (min_prob, 1), skel) for model in models
+        (10, 0.25, 2, model, samples, (min_prob, 1), skel) for model in models
         for min_prob in [0, 0.00001, 0.01, 0.1, 0.7, 0.9]
     ]
-
     pool.starmap(run, args_diff_prob_run)
 
     pool.close()
@@ -50,6 +54,8 @@ def full_run():
 def gen(nodes, edge_prob, max_hidden, i, keep_file=True):
     p = Path(f"data/{nodes}_{edge_prob}_{max_hidden}/{i:03}/dag.csv")
     if not p.is_file() or not keep_file:
+        print(f"Generating {i}")
+
         p.parent.mkdir(parents = True, exist_ok = True)
         subprocess.run([
             "Rscript",
@@ -85,9 +91,11 @@ def bccd(nodes, edge_prob, max_hidden, i, n, keep_file=True):
 
 def run(nodes, edge_prob, max_hidden, i, n, prob_interval, keep_skeleton, keep_file=True):
     for j in n:
-        iter_location = f"data/{prob_interval}/{keep_skeleton}/{nodes}_{edge_prob}_{max_hidden}/{i:03}/{j:07}_iter.csv"
-        mag_location = f"data/{prob_interval}/{keep_skeleton}/{nodes}_{edge_prob}_{max_hidden}/{i:03}/{j:07}_mag.csv"
-        pag_location = f"data/{prob_interval}/{keep_skeleton}/{nodes}_{edge_prob}_{max_hidden}/{i:03}/{j:07}_pag.csv"
+        output_loc = f"data/{prob_interval}/{keep_skeleton}/{nodes}_{edge_prob}_{max_hidden}/{i:03}/{j:07}"
+        iter_location = output_loc + "_iter.csv"
+        mag_location = output_loc + "_mag.csv"
+        pag_location = output_loc + "_pag.csv"
+
         bmag_location = f"data/{nodes}_{edge_prob}_{max_hidden}/{i:03}/{j:07}_bmag.csv"
         lst_location = f"data/{nodes}_{edge_prob}_{max_hidden}/{i:03}/{j:07}_lst.csv"
 
@@ -113,11 +121,15 @@ def run(nodes, edge_prob, max_hidden, i, n, prob_interval, keep_skeleton, keep_f
 
             bmag = read_pag(bmag_location)
             lst = read_lst(lst_location, prob_interval)
+
+            print(f"Run  {nodes}, {edge_prob}, {keep_skeleton}, {prob_interval}: {i}, {j}")
             mag, iterations = main(bmag, lst, keep_skeleton=keep_skeleton)
+            print(f"Done {nodes}, {edge_prob}, {keep_skeleton}, {prob_interval}: {i}, {j}, n = {iterations}")
 
             # save the number of iterations
-            pd.Series(iterations).to_csv(iter_location, header=False, index=False)
+            pd.Series([iterations]).to_csv(iter_location, header=False, index=False)
 
+            # save the mag and turn it into a pag
             write_mag_as_pcalg(mag, mag_location)
             mag_to_pag(mag_location, pag_location)
 
