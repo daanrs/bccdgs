@@ -29,15 +29,6 @@ def to_directed(g):
     g[~(tails & arrows_t)] = 0
     return g
 
-def from_directed(g):
-    """
-    Takes a graph where [i, j] = 1 and returns one where [j, i] = 2 is
-    added
-    """
-    arrows = g.T == 1
-    g[arrows] = 2
-    return g
-
 def numpy_to_gt(matrix):
     """
     Take a numpy directed adjacency matrix and return a gt.Graph.
@@ -76,10 +67,13 @@ def dag_to_mag(dag, lv):
     We assume latent_variables is an array of indices, and dag is a
     adjacency matrix.
     """
-    # get dag in a nice format
-    dag = from_directed(dag)
+    # we change from dag format to mag format directed edges, so we must
+    # add arrows to dag[j, i] = 2 for all i --> j
+    dag = dag.copy()
+    dag[dag.T == 1] = 2
 
-    # add necessary edges
+    # add edges that implicitly carry the information from the latent
+    # variables
     for i in lv:
         for j in np.arange(0, len(dag)):
             # if i -> j
@@ -97,5 +91,4 @@ def dag_to_mag(dag, lv):
                         dag[j, k] = 2
 
     dag = remove_latent_variables(dag, lv)
-
     return dag

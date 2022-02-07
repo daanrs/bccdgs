@@ -2,7 +2,11 @@ from thesis.main import main
 from thesis.data_io import (
     write_mag_as_pcalg,
     read_pag,
-    read_lst)
+    read_lst,
+    gen_loc,
+    bccd_loc,
+    run_loc
+)
 
 from pathlib import Path
 from multiprocessing import Pool
@@ -20,7 +24,7 @@ def full_run():
     samples = 2 ** np.arange(7, 18)
     skel = False
 
-    pool = Pool(8)
+    pool = Pool(4)
 
     args_gen = [(n, p, m, model) for model in models for n, p, m in
                 model_args]
@@ -43,7 +47,8 @@ def full_run():
     pool.starmap(run, args_skel_run)
 
     args_diff_prob_run = [
-        (10, 0.25, 2, model, samples, (min_prob, 1), skel) for model in models
+        (10, 0.25, 2, model, samples, (min_prob, 1), skel)
+        for model in np.arange(50)
         for min_prob in [0, 0.00001, 0.01, 0.1, 0.7, 0.9]
     ]
     pool.starmap(run, args_diff_prob_run)
@@ -52,7 +57,7 @@ def full_run():
     pool.join()
 
 def gen(nodes, edge_prob, max_hidden, i, keep_file=True):
-    p = Path(f"data/{nodes}_{edge_prob}_{max_hidden}/{i:03}/dag.csv")
+    p = Path(gen_loc(nodes, edge_prob, max_hidden, i) + "dag.csv")
     if not p.is_file() or not keep_file:
         print(f"Generating {i}")
 
@@ -63,49 +68,51 @@ def gen(nodes, edge_prob, max_hidden, i, keep_file=True):
             str(max_hidden),
             str(edge_prob),
             str(nodes),
-            f"data/{nodes}_{edge_prob}_{max_hidden}/{i:03}/lv.csv",
-            f"data/{nodes}_{edge_prob}_{max_hidden}/{i:03}/dag.csv",
-            f"data/{nodes}_{edge_prob}_{max_hidden}/{i:03}/pag.csv"
+            gen_loc(nodes, edge_prob, max_hidden, i) + "lv.csv",
+            gen_loc(nodes, edge_prob, max_hidden, i) + "dag.csv",
+            gen_loc(nodes, edge_prob, max_hidden, i) + "pag.csv"
         ])
 
 def bccd(nodes, edge_prob, max_hidden, i, n, keep_file=True):
     for j in n:
-        if not Path(f"data/{nodes}_{edge_prob}_{max_hidden}/{i:03}/{j:07}_bpag.csv").is_file() or not keep_file:
+        if not Path(bccd_loc(nodes, edge_prob, max_hidden, i, j) + "bpag.csv").is_file() or not keep_file:
             subprocess.run([
                 "Rscript",
                 "R/run_bccd.R",
                 f"{j:07}",
-                f"data/{nodes}_{edge_prob}_{max_hidden}/{i:03}/lv.csv",
-                f"data/{nodes}_{edge_prob}_{max_hidden}/{i:03}/dag.csv",
-                f"data/{nodes}_{edge_prob}_{max_hidden}/{i:03}/{j:07}_cor.csv",
-                f"data/{nodes}_{edge_prob}_{max_hidden}/{i:03}/{j:07}_bccd.csv",
-                f"data/{nodes}_{edge_prob}_{max_hidden}/{i:03}/{j:07}_lst.csv",
+                gen_loc(nodes, edge_prob, max_hidden, i) + "lv.csv",
+                gen_loc(nodes, edge_prob, max_hidden, i) + "dag.csv",
+                bccd_loc(nodes, edge_prob, max_hidden, i, j) + "cor.csv",
+                bccd_loc(nodes, edge_prob, max_hidden, i, j) + "bccd.csv",
+                bccd_loc(nodes, edge_prob, max_hidden, i, j) + "lst.csv",
             ],)
 
-            bccd_location = f"data/{nodes}_{edge_prob}_{max_hidden}/{i:03}/{j:07}_bccd.csv"
-            bmag_location = f"data/{nodes}_{edge_prob}_{max_hidden}/{i:03}/{j:07}_bmag.csv"
-            bpag_location = f"data/{nodes}_{edge_prob}_{max_hidden}/{i:03}/{j:07}_bpag.csv"
+            bccd_location = bccd_loc(nodes, edge_prob, max_hidden, i, j) + "bccd.csv"
+            bmag_location = bccd_loc(nodes, edge_prob, max_hidden, i, j) + "bmag.csv"
+            bpag_location = bccd_loc(nodes, edge_prob, max_hidden, i, j) + "bpag.csv"
 
             pag_to_mag(bccd_location, bmag_location)
             mag_to_pag(bmag_location, bpag_location)
 
 def run(nodes, edge_prob, max_hidden, i, n, prob_interval, keep_skeleton, keep_file=True):
     for j in n:
-        output_loc = f"data/{prob_interval}/{keep_skeleton}/{nodes}_{edge_prob}_{max_hidden}/{i:03}/{j:07}"
-        iter_location = output_loc + "_iter.csv"
-        mag_location = output_loc + "_mag.csv"
-        pag_location = output_loc + "_pag.csv"
+        output_loc = run_loc(nodes,
+                             edge_prob, max_hidden, i, j,
+                             prob_interval, keep_skeleton)
+        iter_location = output_loc + "iter.csv"
+        mag_location = output_loc + "mag.csv"
+        pag_location = output_loc + "pag.csv"
 
-        bmag_location = f"data/{nodes}_{edge_prob}_{max_hidden}/{i:03}/{j:07}_bmag.csv"
-        lst_location = f"data/{nodes}_{edge_prob}_{max_hidden}/{i:03}/{j:07}_lst.csv"
+        bccd_location = bccd_loc(nodes, edge_prob, max_hidden, i, j) + "bccd.csv"
+        bmag_location = bccd_loc(nodes, edge_prob, max_hidden, i, j) + "bmag.csv"
+        lst_location = bccd_loc(nodes, edge_prob, max_hidden, i, j) + "lst.csv"
 
         if not Path(pag_location).is_file() or not keep_file:
             # if mag is empty we must generate new model and re-do
             # bccd and run on that part
             while Path(bmag_location).read_text() == '':
                 # we save the error
-                bccd_loc = Path(f"data/{nodes}_{edge_prob}_{max_hidden}/{i:03}/{j:07}_bccd.csv")
-                df = pd.read_csv(bccd_loc, header=None)
+                df = pd.read_csv(bccd_location, header=None)
 
                 error_loc = Path(f"data/errors/{nodes}_{edge_prob}_{max_hidden}_{i:03}_{j:07}_bccd.csv")
                 error_loc.parent.mkdir(parents = True, exist_ok = True)

@@ -58,3 +58,23 @@ def read_lv(file):
     Read latent variables
     """
     return pd.read_csv(file, header=None).to_numpy().flatten() - 1
+
+def run_loc(
+    nodes,
+    edge_prob,
+    max_hidden,
+    i,
+    j,
+    prob_interval,
+    keep_skeleton
+):
+    return (
+        f"data/{prob_interval}/{keep_skeleton}/"
+        + f"{nodes}_{edge_prob}_{max_hidden}/{i:03}/{j:07}_"
+    )
+
+def bccd_loc(nodes, edge_prob, max_hidden, i, j):
+    return (gen_loc(nodes, edge_prob, max_hidden, i) + f"{j:07}_")
+
+def gen_loc(nodes, edge_prob, max_hidden, i):
+    return f"data/{nodes}_{edge_prob}_{max_hidden}/{i:03}/"
