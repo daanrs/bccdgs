@@ -9,9 +9,13 @@ def score(mag, lst):
     We use the score log(true_checks) + log(1 - false_checks), which is
     the log-hikelihood of this happening, and so higher is better.
     """
+    # we need the transitive closure to compute some statements, and it is
+    # much more efficient to calculate that once, then pass it on
+    mag_tc = dag_to_ancestral(to_directed(mag.copy()))
+
     # we check which statments are correct
     # since lst = [prob, statement] we index it [:, 1:]
-    checks = np.array([statement(mag, s) for s in lst[:, 1:]])
+    checks = np.array([statement(mag_tc, mag, s) for s in lst[:, 1:]])
 
     # if checks is empty everything is false
     if len(checks) == 0:
@@ -23,56 +27,57 @@ def score(mag, lst):
 
     return np.sum(np.log(true_c)) + np.sum(np.log(1 - false_c))
 
-def statement(mag, statement):
+def statement(mag_tc, mag, statement):
     """
     Check whether a statement is correct.
 
+    [x,x,z] = unconditional indep. : c = -3;    z < x # confounder/paths
+    [x,y,x] = x/>y         && x/>S : c = -1
+    [x,x,z] = no edge x-z          : c =  0;    x < z
     [x,y,z] = x=>y || x=>z || x=>S : c = +1
     [x,y,y] = x=>y         || x=>S : c = +2
+
     [x,y,y] = x=>y                 : c = +3 (only Binfo/LoCI stage)
-    [x,y,x] = x/>y         && x/>S : c = -1
     [x,y,x] = x/>y                 : c = -2 (only Binfo/LoCI stage)
-    [x,x,z] = no edge x-z          : c =  0;    x < z
-    [x,x,z] = unconditional indep. : c = -3;    z < x # confounder/paths
     [x,x,x] =                 x=>S : c = +4
     [-,-,-] =                 x/>S : c = -4 (only Binfo/LoCI stage)
     """
     [c, x, y, z] = statement.astype(np.int64)
 
     if c == -3:
-        b = not (
-            cofounder(mag, x, z)
-            or ancestor(mag, x, z)
-            or ancestor(mag, z, x)
+        return not (
+            ancestor(mag_tc, x, z)
+            or ancestor(mag_tc, z, x)
+            or cofounder(mag_tc, mag, x, z)
         )
     elif c == -1:
-        b = not ancestor(mag, x, y)
+        return not ancestor(mag_tc, x, y)
     elif c == 0:
-        b = not edge(mag, x, z)
+        return not edge(mag, x, z)
     elif c == 1:
-        b = ancestor(mag, x, y) or ancestor(mag, x, z)
+        return ancestor(mag_tc, x, y) or ancestor(mag_tc, x, z)
     elif c == 2:
-        b = ancestor(mag, x, y)
+        return ancestor(mag_tc, x, y)
     else:
         raise ValueError('Statement type not in (-3, -1, 0, 1, 2)')
-    return b
 
-def ancestor(mag, x, y):
+def ancestor(mag_tc, x, y):
     """Check if x is an ancestor of y."""
-    g = dag_to_ancestral(to_directed(mag.copy()))
-
-    return (g[x, y] == 1)
+    return (mag_tc[x, y] == 1)
 
 def edge(mag, x, y):
     """Check if there is an edge between x and y."""
     return (mag[x, y] != 0)
 
-def cofounder(mag, x, y):
+def cofounder(mag_tc, mag, x, y):
     """Check if there is a cofounder between x and y."""
-    g = dag_to_ancestral(to_directed(mag.copy()))
+    # check for x <-> y
+    if mag[x, y] == 2 and mag[y, x] == 2:
+        return True
 
-    for i in np.arange(g.shape[0]):
-        if (g[i, x] == 1) and (g[i, y] == 1):
+    # check for x <- ... <- z -> ... -> y
+    for z in np.arange(mag_tc.shape[0]):
+        if (mag_tc[z, x] == 1) and (mag_tc[z, y] == 1):
             return True
 
     return False

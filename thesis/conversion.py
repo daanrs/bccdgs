@@ -46,7 +46,7 @@ def dag_to_ancestral(dag):
     """
     Return the transitive closure of a dag
     """
-    g = gt.transitive_closure(numpy_to_gt(dag.copy()))
+    g = gt.transitive_closure(numpy_to_gt(dag))
 
     g = gt.adjacency(g).toarray().T
     return g
