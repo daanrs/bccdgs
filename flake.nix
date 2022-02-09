@@ -44,7 +44,6 @@
         devShell = myAppEnv.env.overrideAttrs (oldAttrs: {
           buildInputs = with pkgs; [
             poetry
-            python39Packages.graph-tool
             python39Packages.ipython
 
             rEnv
