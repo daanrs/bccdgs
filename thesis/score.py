@@ -15,7 +15,8 @@ def score(mag, lst):
 
     # we check which statments are correct
     # since lst = [prob, statement] we index it [:, 1:]
-    checks = np.array([statement(mag_tc, mag, s) for s in lst[:, 1:]])
+    smts = lst[:, 1:].astype(int)
+    checks = np.array([statement(mag_tc, mag, s) for s in smts])
 
     # if checks is empty everything is false
     if len(checks) == 0:
@@ -42,7 +43,7 @@ def statement(mag_tc, mag, statement):
     [x,x,x] =                 x=>S : c = +4
     [-,-,-] =                 x/>S : c = -4 (only Binfo/LoCI stage)
     """
-    [c, x, y, z] = statement.astype(np.int64)
+    [c, x, y, z] = statement
 
     if c == -3:
         return not (
@@ -74,10 +75,6 @@ def cofounder(mag_tc, mag, x, y):
     # check for x <-> y
     if mag[x, y] == 2 and mag[y, x] == 2:
         return True
-
     # check for x <- ... <- z -> ... -> y
-    for z in np.arange(mag_tc.shape[0]):
-        if (mag_tc[z, x] == 1) and (mag_tc[z, y] == 1):
-            return True
-
-    return False
+    else:
+        return (mag_tc[:, x] == 1 & mag_tc[:, y] == 1).any()
