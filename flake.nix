@@ -45,7 +45,7 @@
           buildInputs = with pkgs; [
             poetry
             python39Packages.graph-tool
-            python39Packages.ipython
+            python39Packages.jupyterlab
 
             rEnv
           ];

@@ -77,4 +77,4 @@ def cofounder(mag_tc, mag, x, y):
         return True
     # check for x <- ... <- z -> ... -> y
     else:
-        return (mag_tc[:, x] == 1 & mag_tc[:, y] == 1).any()
+        return ((mag_tc[:, x] == 1) & (mag_tc[:, y] == 1)).any()

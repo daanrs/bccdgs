@@ -70,6 +70,8 @@ def dag_to_mag(dag, lv):
     # we change from dag format to mag format directed edges, so we must
     # add arrows to dag[j, i] = 2 for all i --> j
     dag = dag.copy()
+    dag[dag != 0] = 1
+    dag = dag.astype(int)
     dag[dag.T == 1] = 2
 
     # add edges that implicitly carry the information from the latent

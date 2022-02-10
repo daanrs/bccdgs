@@ -17,77 +17,72 @@ from thesis.score import score
 import pandas as pd
 import numpy as np
 
-def compile_result(
-    # model_args = [(5, 0.6, 1), (10, 0.25, 2), (15, 0.16, 3)],
-    # model_args = [(10, 0.2, 2), (10, 0.25, 2), (10, 0.3, 2)],
+def get_result(
     model_args = [(10, 0.25, 2)],
     models = np.arange(50),
     samples = 2 ** np.arange(7, 18),
-    min_probs = [0, 10 ** -5, 0.01, 0.1, 0.5, 0.7, 0.9],
-    # min_probs = [0.5],
-    # skel = [False, True],
+    min_probs = [0.5],
     skel = [False],
 ):
-    df = pd.DataFrame(
-        {
-            "nodes" : n,
-            "edge_prob" : prob,
-            "model" : model,
-            "skel" : sk,
-            "samples" : sample,
-            "lst" : lst(n, prob, hid, model, sample, (min_prob, 1)),
-            "min_prob" : min_prob,
-            "bccd_mag" : bccd_mag(n, prob, hid, model, sample),
-            "bopt_mag" : bopt_mag(n, prob, hid, model, sample, (min_prob, 1), sk),
-            "original_mag" : original_mag(n, prob, hid, model),
-            "original_pag" : original_pag(n, prob, hid, model),
-            "ancestral_dag" : ancestral_dag(n, prob, hid, model),
-            "iter" : iterations(n, prob, hid, model, sample, (min_prob, 1), sk),
-            "bccd" : bccd_result(n, prob, hid, model, sample),
-            "bccd_magpag" : bpag(n, prob, hid, model, sample),
-            "bccd_opt" : result_pag(n, prob, hid, model, sample, (min_prob, 1), sk)
-        }
-        for n, prob, hid in model_args
-        for model in models
-        for sample in samples
-        for min_prob in min_probs
-        for sk in skel
+    df = (
+        pd.DataFrame(
+            {
+                "nodes": n,
+                "edge_prob": prob,
+                "model": model,
+                "skel": sk,
+                "samples": sample,
+                "lst": lst(n, prob, hid, model, sample, (min_prob, 1)),
+                "min_prob": min_prob,
+                "iter": iterations(n, prob, hid, model, sample, (min_prob, 1), sk),
+                "original_pag": original_pag(n, prob, hid, model),
+                "ancestral_dag": ancestral_dag(n, prob, hid, model),
+                "mag_type": magtype,
+                "mag": mag,
+                "pag_type": pagtype,
+                "pag": pag,
+            }
+            for n, prob, hid in model_args
+            for model in models
+            for sample in samples
+            for min_prob in min_probs
+            for sk in skel
+            for magtype, mag,
+                pagtype, pag in [
+                (
+                    "original_mag", original_mag(n, prob, hid, model),
+                    "bccd",  bccd_result(n, prob, hid, model, sample)
+                ),
+                (
+                    "bccd_mag", bccd_mag(n, prob, hid, model, sample),
+                    "bccd_magpag", bpag(n, prob, hid, model, sample)
+                ),
+                (
+                    "bopt_mag", bopt_mag(n, prob, hid, model, sample, (min_prob, 1), sk),
+                    "bccd_opt", result_pag(n, prob, hid, model, sample, (min_prob, 1), sk)
+                )
+            ]
+        ).assign(
+            # this is kinda annoying, but we want to calculate different
+            # scores and we need access to seperate columns to do so; that
+            # is why we have nested lambda functions, and apply it along
+            # axis=1
+            mag_score = lambda frame: frame.apply(
+                lambda row: score(row["mag"], row["lst"]),
+                axis=1
+            ),
+            pag_acc = lambda frame: frame.apply(
+                lambda row: compare_pags(row["pag"], row["original_pag"]),
+                axis=1
+            ),
+            causal_acc = lambda frame: frame.apply(
+                lambda row: compare_causal_structure(row["pag"],
+                                                   row["ancestral_dag"]),
+                axis=1
+            )
+        )
     )
-    return scores(df)
-
-def scores(df, fci=False):
-    if fci:
-        r = ["fci", "bccd", "bccd_magpag", "bccd_opt"]
-    else:
-        r = ["bccd", "bccd_magpag", "bccd_opt"]
-    df_scores = pd.concat(
-        [
-            df.apply(lambda x:
-                     compare_pags(x[s], x["original_pag"]), axis=1)
-            for s in r
-        ]
-        +
-        [
-            df.apply(lambda x:
-                     compare_causal_structure(x[s], x["ancestral_dag"]), axis=1)
-            for s in r
-        ],
-        keys = [s + "_pag_acc" for s in r] + [s + "_causal_acc" for s in r],
-        axis = 1
-    )
-    return pd.concat([df, df_scores], axis=1)
-
-def mag_scores(df):
-    r = ['original_mag', 'bccd_mag', 'bopt_mag']
-    df_mag_scores = pd.concat(
-        [
-            df.apply(lambda x: score(x[s], x['lst']), axis=1)
-            for s in r
-        ],
-        keys = [s + "_score" for s in r],
-        axis = 1
-    )
-    return pd.concat([df, df_mag_scores], axis=1)
+    return df
 
 def original_mag(*args):
     dag = read_dag(gen_loc(*args) + "dag.csv")
