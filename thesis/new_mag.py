@@ -2,6 +2,7 @@ from thesis.conversion import dag_to_ancestral, to_directed
 from thesis.score import score
 
 import numpy as np
+import numba
 
 def gen_new_mag(mag, lst, keep_skeleton):
     """
@@ -73,7 +74,6 @@ def adjacent_mags(mag, i, j, keep_skeleton):
 
     return mags
 
-
 def almost_directed_cycle(mag):
     """
     Check if a mag has any (almost) directed cycles
@@ -81,4 +81,5 @@ def almost_directed_cycle(mag):
     # we get all possible directed paths from the mags transitive closure
     ancestral = dag_to_ancestral(to_directed(mag.copy()))
 
+    # check if there is an adjacent path x -> ... -> y and x <-* y
     return ((ancestral == 1) & (mag == 2)).any()

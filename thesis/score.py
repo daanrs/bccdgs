@@ -1,6 +1,7 @@
 from thesis.conversion import dag_to_ancestral, to_directed
 
 import numpy as np
+import numba
 
 def score(mag, lst):
     """
@@ -16,7 +17,8 @@ def score(mag, lst):
     # we check which statments are correct
     # since lst = [prob, statement] we index it [:, 1:]
     smts = lst[:, 1:].astype(int)
-    checks = np.array([statement(mag_tc, mag, s) for s in smts])
+    checks = np.array(statements(mag_tc, mag, smts))
+    # checks = np.array([statement(mag_tc, mag, s) for s in smts])
 
     # if checks is empty everything is false
     if len(checks) == 0:
@@ -28,6 +30,11 @@ def score(mag, lst):
 
     return np.sum(np.log(true_c)) + np.sum(np.log(1 - false_c))
 
+@numba.njit
+def statements(mag_tc, mag, smts):
+    return [statement(mag_tc, mag, s) for s in smts]
+
+@numba.njit
 def statement(mag_tc, mag, statement):
     """
     Check whether a statement is correct.
@@ -62,14 +69,17 @@ def statement(mag_tc, mag, statement):
     else:
         raise ValueError('Statement type not in (-3, -1, 0, 1, 2)')
 
+@numba.njit
 def ancestor(mag_tc, x, y):
     """Check if x is an ancestor of y."""
     return (mag_tc[x, y] == 1)
 
+@numba.njit
 def edge(mag, x, y):
     """Check if there is an edge between x and y."""
     return (mag[x, y] != 0)
 
+@numba.njit
 def cofounder(mag_tc, mag, x, y):
     """Check if there is a cofounder between x and y."""
     # check for x <-> y

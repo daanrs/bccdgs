@@ -1,6 +1,5 @@
-from scipy.linalg import expm
-
 import numpy as np
+# import numba
 
 def pag_to_pcalg(g):
     #operation is symmetric
@@ -30,11 +29,17 @@ def to_directed(g):
     g[~(tails & arrows_t)] = 0
     return g
 
+# @numba.njit
 def dag_to_ancestral(dag):
     """
     Return the transitive closure of a dag
     """
-    dag = expm(dag)
+    # we create the identity matrix with dimention n, and add it to dag
+    n = dag.shape[0]
+    dag = dag + np.identity(n)
+
+    # then we calculate the transitive closure by taking dag^n
+    dag = np.linalg.matrix_power(dag, n)
     dag[dag != 0] = 1
     return dag
 
@@ -54,10 +59,13 @@ def dag_to_mag(dag, lv):
     We assume latent_variables is an array of indices, and dag is a
     adjacency matrix.
     """
+    dag = dag.copy()
+    # dag has values (eg. 0.3 or 0.01) that represent the relation between
+    # nodes, we change it to just have a 1 if there is a relation
+    dag[dag != 0] = 1
+
     # we change from dag format to mag format directed edges, so we must
     # add arrows to dag[j, i] = 2 for all i --> j
-    dag = dag.copy()
-    dag[dag != 0] = 1
     dag = dag.astype(int)
     dag[dag.T == 1] = 2
 
