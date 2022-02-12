@@ -1,4 +1,5 @@
-import graph_tool.all as gt
+from scipy.linalg import expm
+
 import numpy as np
 
 def pag_to_pcalg(g):
@@ -29,27 +30,13 @@ def to_directed(g):
     g[~(tails & arrows_t)] = 0
     return g
 
-def numpy_to_gt(matrix):
-    """
-    Take a numpy directed adjacency matrix and return a gt.Graph.
-    """
-    g = gt.Graph()
-
-    edges = np.stack(np.nonzero(matrix), axis=1)
-
-    g.add_vertex(len(matrix))
-    g.add_edge_list(edges)
-
-    return g
-
 def dag_to_ancestral(dag):
     """
     Return the transitive closure of a dag
     """
-    g = gt.transitive_closure(numpy_to_gt(dag))
-
-    g = gt.adjacency(g).toarray().T
-    return g
+    dag = expm(dag)
+    dag[dag != 0] = 1
+    return dag
 
 def remove_latent_variables(dag, lv):
     """

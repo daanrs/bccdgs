@@ -1,7 +1,6 @@
-from thesis.conversion import numpy_to_gt, to_directed
+from thesis.conversion import dag_to_ancestral, to_directed
 from thesis.score import score
 
-import graph_tool.all as gt
 import numpy as np
 
 def gen_new_mag(mag, lst, keep_skeleton):
@@ -80,11 +79,6 @@ def almost_directed_cycle(mag):
     Check if a mag has any (almost) directed cycles
     """
     # we get all possible directed paths from the mags transitive closure
-    g = numpy_to_gt(to_directed(mag.copy()))
-    paths = gt.transitive_closure(g).get_edges()
+    ancestral = dag_to_ancestral(to_directed(mag.copy()))
 
-    # we use numpy advanced indexing to check for every path i -> j
-    # whether mag[i, j] = 2; that is whether i <-* j in the mag
-    cycles = (mag[paths[:, 0], paths[:, 1]] == 2).any()
-
-    return cycles
+    return ((ancestral == 1) & (mag == 2)).any()
