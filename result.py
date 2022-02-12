@@ -32,6 +32,7 @@ def get_result(
                 "model": model,
                 "skel": sk,
                 "samples": sample,
+                "log_samples": np.log2(sample),
                 "lst": lst(n, prob, hid, model, sample, (min_prob, 1)),
                 "min_prob": min_prob,
                 "iter": iterations(n, prob, hid, model, sample, (min_prob, 1), sk),
