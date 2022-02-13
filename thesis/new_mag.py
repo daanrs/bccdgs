@@ -1,9 +1,9 @@
 from thesis.conversion import dag_to_ancestral, to_directed
 from thesis.score import score
 
-from numba import njit, prange
+from numba import njit
 
-@njit(parallel=True)
+@njit
 def gen_new_mag(mag, lst):
     """
     Generate all valid mags which can be created through changing a single
@@ -17,11 +17,11 @@ def gen_new_mag(mag, lst):
 
     # we loop over all possible (i, j) edges, making sure not to double
     # count (i, j) and (j, i)
-    for i in prange(1, n):
-        for j in prange(0, i):
+    for i in range(1, n):
+        for j in range(0, i):
             for new_mag in adjacent_mags(mag, i, j, marks):
                 # if any adjacent mag has a higher score, save that one
-                if score(new_mag, lst) > score(mag, lst):
+                if score(new_mag, lst) > score(best_mag, lst):
                     best_mag = new_mag
 
     # return the best mag we've found
