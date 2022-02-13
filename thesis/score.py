@@ -3,6 +3,7 @@ from thesis.conversion import dag_to_ancestral, to_directed
 import numpy as np
 import numba
 
+@numba.njit
 def score(mag, lst):
     """
     Score how well a mag fits to lst.
@@ -16,23 +17,18 @@ def score(mag, lst):
 
     # we check which statments are correct
     # since lst = [prob, statement] we index it [:, 1:]
-    smts = lst[:, 1:].astype(int)
-    checks = np.array(statements(mag_tc, mag, smts))
-    # checks = np.array([statement(mag_tc, mag, s) for s in smts])
+    smts = lst[:, 1:].astype(np.int8)
+    checks =  np.array([statement(mag_tc, mag, s) for s in smts])
 
-    # if checks is empty everything is false
+    # if checks is empty we return 0, since everything is true by default
     if len(checks) == 0:
-        true_c = []
-        false_c = lst[:, 0]
+        return 0
     else:
-        true_c = lst[checks][:, 0]
+        # true_c = lst[checks][:, 0]
         false_c = lst[~checks][:, 0]
-
-    return np.sum(np.log(true_c)) + np.sum(np.log(1 - false_c))
-
-@numba.njit
-def statements(mag_tc, mag, smts):
-    return [statement(mag_tc, mag, s) for s in smts]
+        # return np.sum(np.log(true_c)) + np.sum(np.log(1 - false_c))
+        # return np.sum(np.log(1 - false_c))
+        return np.sum(np.log(1 - false_c) - np.log(false_c))
 
 @numba.njit
 def statement(mag_tc, mag, statement):

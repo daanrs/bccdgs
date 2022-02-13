@@ -1,5 +1,5 @@
 import numpy as np
-# import numba
+import numba
 
 def pag_to_pcalg(g):
     #operation is symmetric
@@ -17,6 +17,7 @@ def pcalg_to_pag(g):
 
     return g
 
+@numba.njit
 def to_directed(g):
     """
     Take a graph and return a view with only its directed edges.
@@ -24,23 +25,30 @@ def to_directed(g):
     tails = g == 1
     arrows_t = g.T == 2
 
-    # set g[i, j] = 1 iff i --> j; everything else to 0
-    g[tails & arrows_t] = 1
-    g[~(tails & arrows_t)] = 0
+    # set g[i, j] = 1 iff i --> j; everything is 0
+    g = np.zeros(g.shape)
+    for i in range(g.shape[0]):
+        for j in range(g.shape[1]):
+            if tails[i, j] and arrows_t[i, j]:
+                g[i, j] = 1
     return g
 
-# @numba.njit
+@numba.njit
 def dag_to_ancestral(dag):
     """
     Return the transitive closure of a dag
     """
-    # we create the identity matrix with dimention n, and add it to dag
-    n = dag.shape[0]
-    dag = dag + np.identity(n)
+    # we fill the diagonal, so we can use matrix power to get the paths
+    np.fill_diagonal(dag, 1)
 
     # then we calculate the transitive closure by taking dag^n
+    n = dag.shape[0]
     dag = np.linalg.matrix_power(dag, n)
-    dag[dag != 0] = 1
+
+    # change all non-zeros to one
+    for i in range(dag.size):
+        if dag.flat[i] != 0:
+            dag.flat[i] = 1
     return dag
 
 def remove_latent_variables(dag, lv):
