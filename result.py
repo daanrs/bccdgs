@@ -19,7 +19,7 @@ import numpy as np
 
 def get_result(
     model_args = [(10, 0.25, 2)],
-    models = np.arange(50),
+    models = np.arange(100),
     samples = 2 ** np.arange(7, 18),
     min_probs = [0.5],
     skel = [False],
