@@ -24,37 +24,28 @@ def full_run():
     samples = 2 ** np.arange(7, 18)
     skel = False
 
+    # generate models
+    for model in models:
+        for n, p, m in model_args:
+            gen(n, p, m, model)
+
+    # we run bccd in parallel, since that can take a while
     pool = Pool(4)
-
-    args_gen = [(n, p, m, model) for model in models for n, p, m in
-                model_args]
-    pool.starmap(gen, args_gen)
-
     agrs_bccd = [(n, p, m, model, samples) for model in models for n, p, m in
                  model_args]
     pool.starmap(bccd, agrs_bccd)
-
-    # we must complete a full run per model_arg before we do anything in
-    # parallel because of how erroneous bccd_mags are handled in run (see
-    # while .. == "")
-    args_run = [(n, p, m, model, samples, (0.5, 1), skel) for model in
-                models for n, p, m in model_args]
-    pool.starmap(run, args_run)
-
-    args_skel_run = [
-        (10, 0.25, 2, model, samples, (0.5, 1), True) for model in models
-    ]
-    pool.starmap(run, args_skel_run)
-
-    args_diff_prob_run = [
-        (10, 0.25, 2, model, samples, (min_prob, 1), skel)
-        for model in np.arange(50)
-        for min_prob in [0, 0.00001, 0.01, 0.1, 0.7, 0.9]
-    ]
-    pool.starmap(run, args_diff_prob_run)
-
     pool.close()
     pool.join()
+
+    # run code
+    for model in models:
+        for n, p, m in model_args:
+            run(n, p, m, model, samples, (0.5, 1), skel)
+        run(10, 0.25, 2, model, samples, (0.5, 1), True)
+
+    for model in np.arange(50):
+        for min_prob in [0, 0.001, 0.1, 0.7, 0.9]:
+            run(10, 0.25, 2, model, samples, (min_prob, 1), skel)
 
 def gen(nodes, edge_prob, max_hidden, i, keep_file=True):
     p = Path(gen_loc(nodes, edge_prob, max_hidden, i) + "dag.csv")
