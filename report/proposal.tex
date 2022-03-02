@@ -1,0 +1,52 @@
+\documentclass{article}
+\author{Daan Spijkers s1011382 \\ Supervisor: Tom Claassen}
+\title{Research Proposal}
+
+\begin{document}
+
+\maketitle
+
+We can view causal inference as taking a system of statistical
+independencies, and mining a system of causal relations. These causal
+relations are usually represented in a graph.
+
+In an ideal situation, we have a statistical test that determines
+whether $x$ and $y$ are independent with 100\% accuracy. Given such a
+perfect test, complete algorithms exist; they give the total causal
+information possible from that system. Unfortunately, in the real world
+100\% accuracy is not possible, and we often have to make do with
+insufficient data.
+
+That is why taking realistic data, and optimizing the result is a relevant
+problem. It is not always clear how an algorithm performs in these
+situations, even if it is complete. One such complete algorithm is BCCD,
+which uses a bayesian score to return a more robust and informative result
+than comparable procedures.
+
+The topic of my thesis will be an initial attempt to gain some insight
+into possible gains, by adding an additional step after BCCD. We will do
+this by defining a metric on its derived probabilistic causal statements,
+and running a MAG search to optimise it.
+
+The specific research question is: how much can we improve the accuracy of
+the resulting PAG from the BCCD algorithm using a greedy MAG search
+to optimise its probabilistic causal statements?
+
+For more insight we can vary the causal models we generate, and how much
+data we produce. Since BCCD is complete, if we feed it infinite data, we
+should see its result converge to the original causal model.
+
+In our research, the main problem that we will need to solve is how
+exactly to define a metric on the causal statements. That is where the most
+involved effort will have to be.
+
+Although other parts of the problem are simpler, the efficiency of a MAG
+search could be a limitation. Generating adjacent graphs is an
+expensive procedure, so we might have to restrict ourselves to smaller
+graphs.
+
+The original start date was early 2020, with progress being sporadic.
+Currently the target date for finishing experiments is February 2nd, and
+the aim for a complete draft is February 11th.
+
+\end{document}
