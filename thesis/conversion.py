@@ -38,10 +38,10 @@ def dag_to_ancestral(dag):
     """
     Return the transitive closure of a dag
     """
-    # we fill the diagonal, so we can use matrix power to get the paths
+    # fill the diagonal, so we can use matrix power to get the paths
     np.fill_diagonal(dag, 1)
 
-    # then we calculate the transitive closure by taking dag^n
+    # calculate the transitive closure by taking dag^n
     n = dag.shape[0]
     dag = np.linalg.matrix_power(dag, n)
 
@@ -49,6 +49,9 @@ def dag_to_ancestral(dag):
     for i in range(dag.size):
         if dag.flat[i] != 0:
             dag.flat[i] = 1
+
+    # set the diagonal back to 0
+    np.fill_diagonal(dag, 0)
     return dag
 
 def remove_latent_variables(dag, lv):
