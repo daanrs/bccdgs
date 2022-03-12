@@ -32,11 +32,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1644273500,
-        "narHash": "sha256-Bs6d4ua5IEE5xxSfQeRrCO2kwsvI6jABKD4RC6FbZxw=",
+        "lastModified": 1647030100,
+        "narHash": "sha256-E6Ql0v+Gg33bvv2Z8EMbzroHREyLurdhq04KA2Fa7L0=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "dced374d15ef909863720894ec82b50e8b1a5d12",
+        "rev": "ba76fd7aeb02d348647bec993f7b4ec68ae99541",
         "type": "github"
       },
       "original": {
@@ -73,11 +73,8 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1637178755,
-        "narHash": "sha256-cM2wYWRYr13qZL1ueR0SuaCN8ASvryZ2BD0QfqigVs0=",
-        "ref": "nix",
-        "rev": "2263fdaa2097d321a6ff84a0a9d09c59f61f4077",
-        "revCount": 129,
+        "lastModified": 1647031290,
+        "narHash": "sha256-qcdxo0NIzCFVaBviu4ff2FYh7uSsrpU+oUZI4UBs0EI=",
         "type": "git",
         "url": "file:///home/daan/code/uni/thesis/bccd"
       },

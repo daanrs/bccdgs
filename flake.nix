@@ -16,14 +16,22 @@
         rEnv = pkgs.rWrapper.override {
           packages = with pkgs.rPackages; [
             rucausal.defaultPackage.${system}
-            Matrix
-            Rcpp
-            RcppArmadillo
-            Rdpack
-            stringr
-
             pcalg
           ];
+        };
+
+        python39Packages = pkgs.python39Packages.override {
+          overrides = self: super: {
+            rpy2 = super.rpy2.overridePythonAttrs (
+              old: {
+                buildInputs = (old.buildInputs or [ ]) ++ (
+                  with pkgs.rPackages; [
+                    pcalg
+                    rucausal.defaultPackage.${system}
+                ]);
+              }
+            );
+          };
         };
 
         myAppEnv = pkgs.poetry2nix.mkPoetryEnv {
@@ -45,6 +53,7 @@
           buildInputs = with pkgs; [
             poetry
             python39Packages.jupyterlab
+            python39Packages.rpy2
 
             rEnv
           ];
