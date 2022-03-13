@@ -7,17 +7,16 @@ from thesis.util import (
 
 import numpy as np
 
-def gen_new_mag(g, lst, k):
+def gen_new_mag(gs, lst, k):
     """
     Generate the best scoring mag with k edges changed.
-
-    Note that this will not contain g.
     """
-    size, edges, marks = changes(g, k)
-    gs = big_array(g, size, edges, marks)
+    size, edges, marks = changes(gs, k)
+    gs = big_array(gs, size, edges, marks)
 
     #remove all copies of the original mag
-    gs = gs[gs != g]
+    # gs = gs[gs != g]
+    gs = np.unique(gs, axis=1)
 
     # TODO: is this copy necessary?
     # graph transitive closure
@@ -32,9 +31,11 @@ def gen_new_mag(g, lst, k):
     scores = score(gst, gs, lst)
     return gs[np.argmax(scores)]
 
-def changes(g, k):
+def changes(gs, k):
+    if gs.shape[-1] != gs.shape[-2]:
+        raise ValueError("Array not symmetrical, so not a graph")
     marks = np.array([(0, 0), (1, 2), (2, 1), (2, 2)])
-    edges = choices(np.arange(g.shape[0]), 2)
+    edges = choices(np.arange(gs.shape[-1]), 2)
     edges = add_edge_reverse(edges)
 
     marks, edges = product_align(
@@ -45,7 +46,18 @@ def changes(g, k):
         np.arange(edges.shape[0]),
         edges
     )
-    edges = edges.reshape(-1, 3)
+
+    # TODO: maybe not reshape?
+    edges = np.reshape(
+        np.broadcast_to(edges, gs.shape[:1] + edges.shape),
+        (gs.shape[0] * edges.shape[0],) + edges.shape[1:]
+    )
+
+    edges = broadcast_concatenate(
+        np.arange(edges.shape[0]),
+        edges
+    )
+    edges = edges.reshape(-1, 4)
     marks = marks.reshape(-1)
     size = edges[-1, 0] + 1
     return size, edges, marks
