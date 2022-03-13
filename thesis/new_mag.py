@@ -7,30 +7,35 @@ from thesis.util import (
 
 import numpy as np
 
-from numba import njit
-
 def gen_new_mag(g, lst, k):
     """
-    Generate all valid mags which can be created through changing a single
-    edge.
+    Generate the best scoring mag with k edges changed.
+
+    Note that this will not contain g.
     """
-    # all possible mark combinations
-    edges, marks = changes(g, k)
-    size = edges[-1, 0] + 1
-    b = big_array(g, size, edges, marks)
-    b = np.array([g for g in  b if valid_mag(g)])
-    s = np.argmax(np.array([score(g, lst) for g in b]))
-    return b[s]
+    size, edges, marks = changes(g, k)
+    gs = big_array(g, size, edges, marks)
+
+    #remove all copies of the original mag
+    gs = gs[gs != g]
+
+    # TODO: is this copy necessary?
+    # graph transitive closure
+    gst = gs.copy()
+    gst = np.array([dag_to_ancestral(to_directed(g)) for g in gst])
+
+    # check if there is a path x -> ... -> y and x <-* y
+    valids = ~ ((gst == 1) & (gs == 2)).any(axis=(1, 2))
+    gs = gs[valids]
+    gst = gst[valids]
+
+    scores = score(gst, gs, lst)
+    return gs[np.argmax(scores)]
 
 def changes(g, k):
-    # if keep_skeleton:
-        # # TODO: these edges are not ordered correctly
-        # marks = np.array([(1, 2), (2, 1), (2, 2)])
-        # edges = np.transpose(np.nonzero(g))
-    # else:
     marks = np.array([(0, 0), (1, 2), (2, 1), (2, 2)])
-    nodes = choices(np.arange(g.shape[0]), 2)
-    edges = add_edge_reverse(nodes)
+    edges = choices(np.arange(g.shape[0]), 2)
+    edges = add_edge_reverse(edges)
 
     marks, edges = product_align(
         choices(marks, k),
@@ -42,7 +47,8 @@ def changes(g, k):
     )
     edges = edges.reshape(-1, 3)
     marks = marks.reshape(-1)
-    return edges, marks
+    size = edges[-1, 0] + 1
+    return size, edges, marks
 
 def big_array(g, size, edges, marks):
     if edges.shape[0] != marks.shape[0]:
@@ -52,14 +58,3 @@ def big_array(g, size, edges, marks):
     b = np.tile(g, (size,) + tuple(np.repeat(1, len(g.shape))))
     b[edges[:, 0], edges[:, 1], edges[:, 2]] = marks
     return b
-
-@njit
-def valid_mag(mag):
-    """
-    Check if a mag has any (almost) directed cycles
-    """
-    # we get all possible directed paths from the mags transitive closure
-    ancestral = dag_to_ancestral(to_directed(mag.copy()))
-
-    # check if there is an adjacent path x -> ... -> y and x <-* y
-    return not ((ancestral == 1) & (mag == 2)).any()
