@@ -1,49 +1,57 @@
 from thesis.conversion import dag_to_ancestral, to_directed
 from thesis.score import score
+from thesis.util import (
+    product_align, choices, add_edge_reverse,
+    broadcast_concatenate
+)
+
+import numpy as np
 
 from numba import njit
 
-@njit
-def gen_new_mag(mag, lst):
+def gen_new_mag(g, lst, k):
     """
     Generate all valid mags which can be created through changing a single
     edge.
     """
     # all possible mark combinations
-    marks = [(0, 0), (1, 2), (2, 1), (2, 2)]
+    edges, marks = changes(g, k)
+    size = edges[-1, 0] + 1
+    b = big_array(g, size, edges, marks)
+    b = np.array([g for g in  b if valid_mag(g)])
+    s = np.argmax(np.array([score(g, lst) for g in b]))
+    return b[s]
 
-    n = mag.shape[0]
-    best_mag = mag.copy()
+def changes(g, k):
+    # if keep_skeleton:
+        # # TODO: these edges are not ordered correctly
+        # marks = np.array([(1, 2), (2, 1), (2, 2)])
+        # edges = np.transpose(np.nonzero(g))
+    # else:
+    marks = np.array([(0, 0), (1, 2), (2, 1), (2, 2)])
+    nodes = choices(np.arange(g.shape[0]), 2)
+    edges = add_edge_reverse(nodes)
 
-    # we loop over all possible (i, j) edges, making sure not to double
-    # count (i, j) and (j, i)
-    for i in range(1, n):
-        for j in range(0, i):
-            for new_mag in adjacent_mags(mag, i, j, marks):
-                # if any adjacent mag has a higher score, save that one
-                if score(new_mag, lst) > score(best_mag, lst):
-                    best_mag = new_mag
+    marks, edges = product_align(
+        choices(marks, k),
+        choices(edges, k)
+    )
+    edges = broadcast_concatenate(
+        np.arange(edges.shape[0]),
+        edges
+    )
+    edges = edges.reshape(-1, 3)
+    marks = marks.reshape(-1)
+    return edges, marks
 
-    # return the best mag we've found
-    return best_mag
-
-@njit
-def adjacent_mags(mag, x, y, marks):
-    """
-    Generate array of mags with all i *-* j possibilities
-    """
-    # one of the following is the same as the original mag
-    for i, j in marks:
-        # if marks are different than in the original mag we create a
-        # new mag
-        if (mag[x, y] != i) or (mag[y, x] != j):
-            m = mag.copy()
-            m[x, y] = i
-            m[y, x] = j
-
-            # check if this is a valid mag
-            if valid_mag(m):
-                yield m
+def big_array(g, size, edges, marks):
+    if edges.shape[0] != marks.shape[0]:
+        raise ValueError(
+            "Edge and mark changes need the same size in dimension 0"
+        )
+    b = np.tile(g, (size,) + tuple(np.repeat(1, len(g.shape))))
+    b[edges[:, 0], edges[:, 1], edges[:, 2]] = marks
+    return b
 
 @njit
 def valid_mag(mag):
