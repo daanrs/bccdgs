@@ -58,29 +58,6 @@ def product_align(x, y):
     )
     return xs, ys
 
-def align(x, y, axis=0):
-    """
-    TODO: wip
-    """
-    x_prod_dim = x.shape[:axis+1]
-    y_prod_dim = y.shape[:axis+1]
-    xs = np.broadcast_to(x, y_prod_dim + (x.shape))
-    ys = np.broadcast_to(y, x_prod_dim + (y.shape))
-
-    new_dim = tuple((np.array(x_prod_dim) * np.array(y_prod_dim)).astype(int))
-
-    xs = np.reshape(
-        xs,
-        new_dim + (x.shape[(axis+1):]),
-        order='F'
-    )
-    ys = np.reshape(
-        ys,
-        new_dim + (y.shape[(axis+1):]),
-        order='C'
-    )
-    return xs, ys
-
 def add_edge_reverse(x):
     xr = x[:, ::-1]
     return np.concatenate(
