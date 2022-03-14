@@ -7,29 +7,29 @@ from thesis.util import (
 
 import numpy as np
 
-def gen_new_mag(gs, lst, k):
+def gen_new_mag(gs, lst, n, k):
     """
-    Generate the best scoring mag with k edges changed.
+    Generate the n best scoring mags with k edges changed.
     """
     size, edges, marks = changes(gs, k)
     gs = big_array(gs, size, edges, marks)
 
-    #remove all copies of the original mag
-    # gs = gs[gs != g]
-    gs = np.unique(gs, axis=1)
+    # remove all duplicates
+    gs = np.unique(gs, axis=0)
 
-    # TODO: is this copy necessary?
     # graph transitive closure
-    gst = gs.copy()
-    gst = np.array([dag_to_ancestral(to_directed(g)) for g in gst])
+    gst = np.array([dag_to_ancestral(to_directed(g)) for g in gs])
 
     # check if there is a path x -> ... -> y and x <-* y
     valids = ~ ((gst == 1) & (gs == 2)).any(axis=(1, 2))
     gs = gs[valids]
     gst = gst[valids]
 
+    # we need size - n since we want the highest scoring mags
+    n = score.size - n
     scores = score(gst, gs, lst)
-    return gs[np.argmax(scores)]
+    argp = np.argpartition(scores, n)
+    return gs[argp[n:]]
 
 def changes(gs, k):
     if gs.shape[-1] != gs.shape[-2]:
@@ -42,31 +42,38 @@ def changes(gs, k):
         choices(marks, k),
         choices(edges, k)
     )
-    edges = broadcast_concatenate(
-        np.arange(edges.shape[0]),
-        edges
-    )
-
-    # TODO: maybe not reshape?
-    edges = np.reshape(
-        np.broadcast_to(edges, gs.shape[:1] + edges.shape),
-        (gs.shape[0] * edges.shape[0],) + edges.shape[1:]
-    )
 
     edges = broadcast_concatenate(
         np.arange(edges.shape[0]),
         edges
     )
+
+    edges = np.broadcast_to(edges, gs.shape[:1] + edges.shape)
+    marks = np.broadcast_to(marks, gs.shape[:1] + marks.shape)
+
+    edges = broadcast_concatenate(
+        np.arange(gs.shape[0]),
+        edges
+    )
+
     edges = edges.reshape(-1, 4)
     marks = marks.reshape(-1)
-    size = edges[-1, 0] + 1
+    size = edges[-1, 1] + 1
     return size, edges, marks
 
-def big_array(g, size, edges, marks):
+def big_array(gs, size, edges, marks):
     if edges.shape[0] != marks.shape[0]:
         raise ValueError(
             "Edge and mark changes need the same size in dimension 0"
         )
-    b = np.tile(g, (size,) + tuple(np.repeat(1, len(g.shape))))
-    b[edges[:, 0], edges[:, 1], edges[:, 2]] = marks
-    return b
+
+    newshape = np.array(gs.shape[:1] + (1,) + gs.shape[1:])
+    gs = gs.reshape(tuple(newshape))
+
+    newshape[:] = 1
+    newshape[1] = size
+
+    b = np.tile(gs, tuple(newshape))
+
+    b[edges[:, 0], edges[:, 1], edges[:, 2], edges[:, 3]] = marks
+    return b.reshape(-1, gs.shape[-1], gs.shape[-2])

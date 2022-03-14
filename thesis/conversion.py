@@ -51,7 +51,7 @@ def dag_to_ancestral(dag):
             dag.flat[i] = 1
 
     # set the diagonal back to 0
-    np.fill_diagonal(dag, 0)
+    # np.fill_diagonal(dag, 0)
     return dag
 
 def remove_latent_variables(dag, lv):
