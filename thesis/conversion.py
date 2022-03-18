@@ -45,13 +45,14 @@ def dag_to_ancestral(dag):
     n = dag.shape[0]
     dag = np.linalg.matrix_power(dag, n)
 
-    # change all non-zeros to one
-    for i in range(dag.size):
-        if dag.flat[i] != 0:
-            dag.flat[i] = 1
+    # change all non-zeros to one, and set diagonal back to 0
+    for i in range(dag.shape[0]):
+        for j in range(dag.shape[1]):
+            if i == j:
+                dag[i, j] = 0
+            elif dag[i, j] != 0:
+                dag[i, j] = 1
 
-    # set the diagonal back to 0
-    # np.fill_diagonal(dag, 0)
     return dag
 
 def remove_latent_variables(dag, lv):

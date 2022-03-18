@@ -25,6 +25,13 @@ def choices(n, k):
             ]
         )
 
+def self_product_power(x, k):
+    x = np.reshape(x, x.shape[:1] + (1,) + x.shape[1:])
+    xi = x
+    for _ in range(k-1):
+        xi = np.concatenate(product_align(xi, x), axis=1)
+    return xi
+
 def broadcast_concatenate(x, y):
     ys = np.array(y.shape)[::-1]
     ys[0] = 1

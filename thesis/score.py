@@ -35,56 +35,66 @@ def score_dict(sts):
         "indep" : (sts_indep[:, [2, 4]].astype(int), sts_indep[:, 0])
     }
 
-def score(gst,
-          gs,
+def score(g,
+          gt,
           cause_or=None,
           cause=None,
           edge=None,
           noncause=None,
           indep=None):
 
-    s = np.zeros(gst.shape[0])
+    s = 0
     if (cause_or != None) and (cause_or[0].size > 0):
-        s += calc_score(s_cause_or(gst, cause_or[0]), cause_or[1])
+        s += calc_score(s_cause_or(gt, cause_or[0]), cause_or[1])
+
     if (cause != None) and (cause[0].size > 0):
-        s += calc_score(s_cause(gst, cause[0]), cause[1])
+        s += calc_score(s_cause(gt, cause[0]), cause[1])
+
     if (edge != None) and (edge[0].size > 0):
-        s += calc_score(s_edge(gs, edge[0]), edge[1])
+        s += calc_score(s_edge(g, edge[0]), edge[1])
+
     if (noncause != None) and (noncause[0].size > 0):
-        s += calc_score(s_noncause(gst, noncause[0]), noncause[1])
+        s += calc_score(s_noncause(gt, noncause[0]), noncause[1])
+
     if (indep != None) and (indep[0].size > 0):
-        s += calc_score(s_indep(gst, gs, indep[0]), indep[1])
+        s += calc_score(s_indep(g, gt, indep[0]), indep[1])
 
     return s
 
-def calc_score(gs_sts, sts):
+def calc_score(g_sts, sts_score):
     """
     scoring function = np.sum(np.log(1 - false_c) - np.log(false_c))
     """
-    big_sts = np.broadcast_to(sts, gs_sts.shape)
-    false_sts = big_sts[~gs_sts]
-    return np.sum(np.log(1 - false_sts) - np.log(false_sts), axis=1)
+    false_sts = sts_score[g_sts]
+    return np.sum(np.log(1 - false_sts) - np.log(false_sts))
 
-def s_noncause(gst, sts):
-    return ~s_cause(gst, sts)
+def s_noncause(gt, sts):
+    return ~s_cause(gt, sts)
 
-def s_cause_or(gst, sts):
-    return s_cause(gst, sts[0]) | s_cause(gst, sts[1])
+def s_cause_or(gt, sts):
+    return s_cause(gt, sts[0]) | s_cause(gt, sts[1])
 
-def s_cause(gst, sts):
-    return gst[:, sts[:, 0], sts[:, 1]] == 1
+def s_cause(gt, sts):
+    return gt[sts[:, 0], sts[:, 1]] == 1
 
-def s_edge(gs, sts):
-    return gs[:, sts[:, 0], sts[:, 1]] != 0
+def s_edge(g, sts):
+    return g[sts[:, 0], sts[:, 1]] != 0
 
-def s_indep(gst, gs, sts):
+def s_indep(g, gt, sts):
     return ~ (
-        s_edge(gs, sts)
-        | s_cause(gst, sts)
-        | s_cause(gst, sts[:, ::-1])
+        # x *-* y
+        s_edge(g, sts)
+
+        # x -> ... -> y
+        | s_cause(gt, sts)
+
+        # x <- ... <- y
+        | s_cause(gt, sts[:, ::-1])
+
+        # x <- ... <- z -> ... -> y
         | (
-            (gst[:, :, sts[:, 0]] == 1)
-            & (gst[:, :, sts[:, 1]] == 1)
-        ).any(axis=1)
+            (gt[:, sts[:, 0]] == 1)
+            & (gt[:, sts[:, 1]] == 1)
+        ).any(axis=0)
     )
 
