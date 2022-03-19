@@ -32,16 +32,17 @@
           pcalg
         ];
 
-        #bccdgs_r = pkgs.rPackages.buildRPackage {
-          #name = "bccdgs_r";
-          #src = ./R;
-          #propagatedBuildInputs = [ rDepends ];
-        #};
+        bccdgs_r = pkgs.rPackages.buildRPackage {
+          name = "bccdgsr";
+          src = ./bccdgsr;
+          propagatedBuildInputs = [ rDepends ];
+        };
 
         rEnv = pkgs.rWrapper.override {
           packages = with pkgs.rPackages; [
             rDepends
-            #bccdgs_r
+            devtools
+            bccdgs_r
           ];
         };
 
@@ -51,8 +52,7 @@
               old: {
                 buildInputs = (old.buildInputs or [ ]) ++ (
                   with pkgs.rPackages; [
-                    #bccdgs_r
-                    rDepends
+                    bccdgs_r
                 ]);
               }
             );
