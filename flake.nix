@@ -1,22 +1,47 @@
 {
-  description = "Thesis";
+  description = "bccdgs";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs";
     flake-utils.url = "github:numtide/flake-utils";
-
-    rucausal.url = "/home/daan/code/uni/thesis/bccd";
   };
 
-  outputs = { self, nixpkgs, flake-utils, rucausal }:
+  outputs = { self, nixpkgs, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
 
+        rucausal = pkgs.rPackages.buildRPackage {
+          name = "rucausal";
+          src = fetchGit {
+            url = "https://gitlab.science.ru.nl/gbucur/RUcausal.git";
+            ref = "master";
+            rev = "866e76075fe946b768ad07d3de2a78f8b86d76e2";
+          };
+          propagatedBuildInputs = with pkgs.rPackages; [
+            Matrix
+            Rcpp
+            RcppArmadillo
+            Rdpack
+            stringr
+          ];
+        };
+
+        rDepends = with pkgs.rPackages; [
+          rucausal
+          pcalg
+        ];
+
+        #bccdgs_r = pkgs.rPackages.buildRPackage {
+          #name = "bccdgs_r";
+          #src = ./R;
+          #propagatedBuildInputs = [ rDepends ];
+        #};
+
         rEnv = pkgs.rWrapper.override {
           packages = with pkgs.rPackages; [
-            rucausal.defaultPackage.${system}
-            pcalg
+            rDepends
+            #bccdgs_r
           ];
         };
 
@@ -26,8 +51,8 @@
               old: {
                 buildInputs = (old.buildInputs or [ ]) ++ (
                   with pkgs.rPackages; [
-                    pcalg
-                    rucausal.defaultPackage.${system}
+                    #bccdgs_r
+                    rDepends
                 ]);
               }
             );
@@ -42,7 +67,7 @@
           projectDir = ./.;
         };
 
-        packageName = "thesis";
+        packageName = "bccdgs";
       in
       {
         packages.${packageName} = app;
