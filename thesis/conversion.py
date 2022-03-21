@@ -1,22 +1,6 @@
 import numpy as np
 import numba
 
-def pag_to_pcalg(g):
-    #operation is symmetric
-    return pcalg_to_pag(g)
-
-def pcalg_to_pag(g):
-    # transpose
-    g = g.copy().T
-
-    # switch circles and tails
-    circles = g == 1
-    tails = g == 3
-    g[circles] = 3
-    g[tails] = 1
-
-    return g
-
 @numba.njit
 def to_directed(g):
     """

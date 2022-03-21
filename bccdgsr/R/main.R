@@ -1,34 +1,49 @@
-#set.seed(5)
+set_seed <- function(s) {
+  set.seed(s)
+}
 
-## gen graph
+matrix_to_graph <- function(g) {
+  return(as(g, "graphNEL"))
+}
 
-gen_graph <- function(v, hid, prob) {
-  L_num <- sample.int(hid, 1)
-  L <- sample.int(v, L_num)
+graph_to_matrix <- function(g) {
+  return(as(g, "matrix"))
+}
 
+gen_graph <- function(v, prob) {
   g <- pcalg::randomDAG(v, prob = prob)
+  return(graph_to_matrix(g))
+}
+
+get_cor <- function(g, L, n) {
+  # generate samples of DAG using standard normal error distribution
+  g <- matrix_to_graph(g)
+  d <- pcalg::rmvDAG(n, g, errDist="normal")
+
+  R <- cor(d)
+  R <- R[-L,-L]
+  return(R)
+}
+
+get_pag <- function(g, L) {
+  g <- matrix_to_graph(g)
+
+  # Find PAG
+  n <- 10^9
 
   # compute the true covariance matrix of g
   cov.mat <- pcalg::trueCov(g)
   # transform covariance matrix into a correlation matrix
   true.corr <- cov2cor(cov.mat)
 
-  # Find PAG
-  n <- 10^9
   indepTest = pcalg::gaussCItest
   true.pag <- pcalg::dag2pag(suffStat = list(C = true.corr, n=n),
                       indepTest = indepTest,
                       graph=g, L=L, alpha = 0.9999, verbose=FALSE)
-
-  return(list(g, true.pag))
+  return(graph_to_matrix(true.pag))
 }
 
-run_bccd <- function(g, n) {
-  # generate samples of DAG using standard normal error distribution
-  d <- pcalg::rmvDAG(n, g, errDist="normal")
-  R <- cor(d)
-  R <- R[-L,-L]
-
+run_bccd <- function(R, n) {
   bccd.fit <- RUcausal::BCCD(R, n, provide_detailed_output = TRUE,
                    no_selection_bias = TRUE)
 
@@ -36,14 +51,14 @@ run_bccd <- function(g, n) {
 
   # transform to pcalg style
   bpag <- t(bpag)
-
   circles <- bpag == 1
   tails <- bpag == 3
-
   bpag[circles] <- 3
   bpag[tails] <- 1
 
-  return(bpag)
+  sts = bccd.fit$prob_L_max
+
+  return(list(bpag, sts))
 }
 
 pag_to_mag <- function(pag) {
@@ -52,11 +67,11 @@ pag_to_mag <- function(pag) {
 }
 
 mag_to_pag <- function(mag) {
-  ## mag to pag
-  suffStat<-list(g=bmag,verbose=FALSE)
+  suffStat<-list(g=mag,verbose=FALSE)
 
+  indepTest <- pcalg::dsepAMTest
   # use d-separation as independence test with FCI
-  fci.pag <- pcalg::fci(suffStat, indepTest=dsepAMTest, alpha = 0.5, p=nrow(amat),
+  fci.pag <- pcalg::fci(suffStat, indepTest=indepTest, alpha = 0.5, p=nrow(mag),
                  verbose=FALSE, selectionBias=FALSE)
-  return(fci.pag)
+  return(graph_to_matrix(fci.pag))
 }
