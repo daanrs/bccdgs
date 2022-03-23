@@ -30,6 +30,7 @@
         rDepends = with pkgs.rPackages; [
           rucausal
           pcalg
+          purrr
         ];
 
         bccdgs_r = pkgs.rPackages.buildRPackage {
@@ -48,6 +49,7 @@
 
         python39Packages = pkgs.python39Packages.override {
           overrides = self: super: {
+
             rpy2 = super.rpy2.overridePythonAttrs (
               old: {
                 buildInputs = (old.buildInputs or [ ]) ++ (
@@ -61,6 +63,15 @@
 
         myAppEnv = pkgs.poetry2nix.mkPoetryEnv {
           projectDir = ./.;
+          overrides = pkgs.poetry2nix.overrides.withDefaults (
+            self: super: {
+              threadpoolctl = super.threadpoolctl.overridePythonAttrs (
+                old: {
+                  format = "flit";
+                }
+              );
+            }
+          );
         };
 
         app = pkgs.poetry2nix.mkPoetryApplication {

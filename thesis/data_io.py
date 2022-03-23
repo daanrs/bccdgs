@@ -1,23 +1,4 @@
-from thesis.conversion import pcalg_to_pag, pag_to_pcalg
-
 import pandas as pd
-
-def read_pag(file):
-    """Read the PAG from a csv file"""
-    df = (
-        pd.read_csv(file, sep=',', header=None)
-        .to_numpy()
-    )
-
-    return pcalg_to_pag(df)
-
-def read_dag(file):
-    """Read the PAG from a csv file"""
-    df = (
-        pd.read_csv(file, sep=',', header=None)
-        .to_numpy()
-    )
-    return df
 
 def read_lst(file, prob_interval):
     """Read logical statements from a csv file.
@@ -47,34 +28,3 @@ def read_lst(file, prob_interval):
     df = df[df[:, 1] != 4]
 
     return df
-
-def write_mag_as_pcalg(g, file):
-    g = pag_to_pcalg(g)
-    pd.DataFrame(g).to_csv(file, header=False, index = False)
-    return
-
-def read_lv(file):
-    """
-    Read latent variables
-    """
-    return pd.read_csv(file, header=None).to_numpy().flatten() - 1
-
-def run_loc(
-    nodes,
-    edge_prob,
-    max_hidden,
-    i,
-    j,
-    prob_interval,
-    keep_skeleton
-):
-    return (
-        f"data/{prob_interval}/{keep_skeleton}/"
-        + f"{nodes}_{edge_prob}_{max_hidden}/{i:03}/{j:07}_"
-    )
-
-def bccd_loc(nodes, edge_prob, max_hidden, i, j):
-    return (gen_loc(nodes, edge_prob, max_hidden, i) + f"{j:07}_")
-
-def gen_loc(nodes, edge_prob, max_hidden, i):
-    return f"data/{nodes}_{edge_prob}_{max_hidden}/{i:03}/"

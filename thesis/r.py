@@ -12,29 +12,50 @@ def set_r_seed(s):
     b.set_seed(s)
 
 def gen_graph(v, prob):
-    return pcalg_to_pag(b.gen_graph(v, prob))
+    return pcalg_to_dag(b.gen_graph(v, prob))
 
 def run_bccd(g, l, n):
-    g = pag_to_pcalg(g)
+    g = dag_to_pcalg(g)
+
+    # r indices start at 1. TODO: copy?
+    l = l.copy() + 1
+
     c = b.get_cor(
         g,
         ro.IntVector(l),
         n
     )
 
-    return pcalg_to_pag(b.run_bccd(c, n))
+    bpag, sts = b.run_bccd(c, n)
+    bpag = pcalg_to_pag(bpag)
 
-def get_pag(g, l):
-    g = pag_to_pcalg(g)
+    return bpag, sts
+
+def dag_to_pag(g, l):
+    # r indices start at 1. TODO: copy?
+    l = l.copy() + 1
+
+    g = dag_to_pcalg(g)
     return pcalg_to_pag(b.get_pag(g, l))
 
 def pag_to_mag(g):
     g = pag_to_pcalg(g)
-    return pcalg_to_pag(b.pag_to_mag(g))
+
+    gp = b.pag_to_mag(g)
+    if (gp == 0).all():
+        return None
+    else:
+        return pcalg_to_pag(gp)
 
 def mag_to_pag(g):
     g = pag_to_pcalg(g)
     return pcalg_to_pag(b.mag_to_pag(g))
+
+def dag_to_pcalg(g):
+    return g.copy().T
+
+def pcalg_to_dag(g):
+    return np.array(g).T
 
 def pag_to_pcalg(g):
     g = g.copy().T
@@ -48,8 +69,7 @@ def pag_to_pcalg(g):
     return g
 
 def pcalg_to_pag(g):
-    # transpose
-    g = np.array(g)
+    g = np.array(g).T
 
     # switch circles and tails
     circles = g == 1

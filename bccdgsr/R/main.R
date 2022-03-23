@@ -63,7 +63,12 @@ run_bccd <- function(R, n) {
 
 pag_to_mag <- function(pag) {
   mag <- pcalg::pag2magAM(pag, 1)
-  return(mag)
+  if (purrr::is_empty(mag)) {
+    return(c(0))
+  }
+  else {
+    return(mag)
+  }
 }
 
 mag_to_pag <- function(mag) {
