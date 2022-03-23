@@ -11,7 +11,8 @@ b = importr('bccdgsr')
 def set_r_seed(s):
     b.set_seed(s)
 
-def gen_graph(v, prob):
+def gen_graph(v, deg):
+    prob = deg / (v - 1)
     return pcalg_to_dag(b.gen_graph(v, prob))
 
 def run_bccd(g, l, n):
