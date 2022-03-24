@@ -30,8 +30,10 @@ def run_bccd(g, l, n):
     bpag, sts = b.run_bccd(c, n)
     bpag = pcalg_to_pag(bpag)
 
+    # we only take what we care about
+    sts = sts[:, [0, 2, 3, 4, 5]]
     # r indices start at 1
-    sts[:, 3:] = sts[:, 3:] - 1
+    sts[:, 2:] = sts[:, 2:] - 1
 
     return bpag, sts
 

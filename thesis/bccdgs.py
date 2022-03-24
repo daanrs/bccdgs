@@ -1,9 +1,9 @@
 from thesis.new_mag import gen_new_mag
-from thesis.score import score, score_dict
+from thesis.score import score, filter_min_score
 from thesis.conversion import mag_to_ancestral
 
-def bccdgs(mag, lst, n, k, min_prob, max_iter=1000):
-    sts = score_dict(lst, min_prob)
+def bccdgs(mag, sts, n, k, min_prob, max_iter=1000):
+    sts = filter_min_score(sts, min_prob)
 
     mag = mag.copy()
     mag_tc = mag_to_ancestral(mag)
