@@ -8,13 +8,13 @@ from pathlib import Path
 
 def gen_data(
     nodes = 10,
-    degree = 2,
+    degree = 3,
     max_hidden_nodes = 2,
     models = [1, 2],
     samples = [4000],
     seed = 5,
     write = False,
-    location = Path("data_new")
+    location = Path("data")
 ):
 
     random.seed(seed)

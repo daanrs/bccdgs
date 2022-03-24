@@ -5,7 +5,7 @@ from thesis.run import gen_data
 def main():
     gen_data(
         nodes = 5,
-        degree = 2,
+        degree = 3,
         max_hidden_nodes = 1,
         models = np.arange(100),
         samples = 2 ** np.arange(7, 18),
@@ -13,7 +13,7 @@ def main():
         write = True
     )
 
-    for d in [2, 2.5, 3]:
+    for d in [2, 3, 4]:
         gen_data(
             nodes = 10,
             degree = d,
@@ -26,7 +26,7 @@ def main():
 
     gen_data(
         nodes = 15,
-        degree = 2,
+        degree = 3,
         max_hidden_nodes = 3,
         models = np.arange(100),
         samples = 2 ** np.arange(7, 18),
