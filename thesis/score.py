@@ -1,6 +1,6 @@
 import numpy as np
 
-def score_dict(sts):
+def score_dict(sts, min_prob):
     """
     [x,y,y] = x=>y         || x=>S : c = +2
     [x,y,z] = x=>y || x=>z || x=>S : c = +1
@@ -14,6 +14,13 @@ def score_dict(sts):
             | (sts[:, 0] > 2)
             ).any():
         raise ValueError("Statement type not in (-3, -1, 0, 1, 2)")
+
+    # index 1 contains something we don't care about
+    sts = np.delete(sts, [1], axis=1)
+
+    # we only take the statements with min_prob > 0.5
+    # TODO: this should be a seperate function on the dictionary
+    sts = sts[sts[:, 0] > min_prob]
 
     sts_cause_or = sts[sts[:, 1] == 2]
     sts_cause = sts[sts[:, 1] == 1]
@@ -44,7 +51,7 @@ def score(g,
           indep=None):
 
     s = 0
-    if (cause_or != None) and (cause_or[0].size > 0):
+    if (cause_or != None) and (cause_or[0][0].size > 0):
         s += calc_score(s_cause_or(gt, cause_or[0]), cause_or[1])
 
     if (cause != None) and (cause[0].size > 0):

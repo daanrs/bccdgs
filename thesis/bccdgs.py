@@ -1,17 +1,28 @@
 from thesis.new_mag import gen_new_mag
-from thesis.score import score
+from thesis.score import score, score_dict
+from thesis.conversion import mag_to_ancestral
 
-def main(mag, lst, k, max_iter=1000):
+def bccdgs(mag, lst, n, k, min_prob, max_iter=1000):
+    sts = score_dict(lst, min_prob)
+
     mag = mag.copy()
-    new_mag = gen_new_mag(mag, lst, k)
-    n = 0
+    mag_tc = mag_to_ancestral(mag)
+    mag_score = score(mag, mag_tc, **sts)
 
-    while (
-            (score(new_mag, lst) > score(mag, lst))
-            and (n <= max_iter)
-    ):
+    new_mag = gen_new_mag(mag, sts, n, k)
+    new_mag_tc = mag_to_ancestral(new_mag)
+    new_mag_score = score(new_mag, new_mag_tc, **sts)
+    it = 0
+
+    while (new_mag_score > mag_score) and (it <= max_iter):
+        print(f"{mag_score} -> {new_mag_score}")
         mag = new_mag.copy()
-        new_mag = gen_new_mag(new_mag, lst, k)
-        n += 1
+        mag_tc = new_mag_tc
+        mag_score = new_mag_score
 
-    return mag, n
+        new_mag = gen_new_mag(mag, sts, n, k)
+        new_mag_tc = mag_to_ancestral(new_mag)
+        new_mag_score = score(new_mag, new_mag_tc, **sts)
+        it += 1
+
+    return mag, it

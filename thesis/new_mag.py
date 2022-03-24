@@ -1,4 +1,3 @@
-from thesis.score import score_dict
 from thesis.util import (
     product_align, choices, add_edge_reverse,
     broadcast_concatenate,
@@ -8,7 +7,7 @@ from thesis.graphs_array import graphs, graphs_tc, graphs_score
 
 import numpy as np
 
-def gen_new_mag(g, lst, n, k):
+def gen_new_mag(g, sts, n, k):
     """
     Generate the n best scoring mags with k edges changed.
     """
@@ -17,7 +16,7 @@ def gen_new_mag(g, lst, n, k):
     edges = edges_from_shape(g.shape[0])
 
     # get new arrays of all edge and mark changes
-    size, edges, marks = changes(marks, edges, k)
+    size, edges, marks = changes(edges, marks, k)
     gs = graphs(g, size, edges, marks)
 
     # remove all duplicates
@@ -32,17 +31,20 @@ def gen_new_mag(g, lst, n, k):
     gst = gst[valids]
 
     # we need size - n since we want the highest scoring mags
-    sts = score_dict(lst)
     scores = graphs_score(gs, gst, sts)
 
     # get the n best mags, for which we partition the last n values
     n_scores = scores.size - n
     argp = np.argpartition(scores, n_scores)
-    return gs[argp[n_scores:]]
+    # for now we just return one regardless
+    return gs[argp[-1]]
+
+    # return gs[argp[n_scores:]]
 
 def edges_from_shape(n):
     edges = choices(np.arange(n), 2)
     edges = add_edge_reverse(edges)
+    return edges
 
 def changes(edges, marks, k):
     """

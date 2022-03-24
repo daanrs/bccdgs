@@ -1,6 +1,9 @@
 import numpy as np
 import numba
 
+def mag_to_ancestral(g):
+    return dag_to_ancestral(to_directed(g.copy()))
+
 @numba.njit
 def to_directed(g):
     """

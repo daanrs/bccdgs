@@ -11,7 +11,7 @@ def graphs(g, size, edges, marks):
             "Edge and mark changes need the same size in dimension 0"
         )
 
-    shape_to_tile = tuple(np.repeat(1, len(g.shape) + 1))
+    shape_to_tile = tuple(np.repeat(1, len(g.shape)))
     shape_to_tile = (size,) + shape_to_tile
 
     b = np.tile(g, shape_to_tile)
@@ -22,12 +22,12 @@ def graphs(g, size, edges, marks):
 @njit
 def graphs_tc(gs):
     gst = gs.copy()
-    for i in gst.shape[0]:
+    for i in range(gst.shape[0]):
         gst[i] = dag_to_ancestral(to_directed(gst[i]))
     return gst
 
 def graphs_score(gs, gst, sts):
     scores = np.empty(gs.shape[0], dtype=float)
     for i in range(scores.size):
-        scores[i] = score(gs[i], gst[i], sts)
+        scores[i] = score(gs[i], gst[i], **sts)
     return scores

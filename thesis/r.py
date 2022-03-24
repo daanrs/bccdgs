@@ -30,6 +30,9 @@ def run_bccd(g, l, n):
     bpag, sts = b.run_bccd(c, n)
     bpag = pcalg_to_pag(bpag)
 
+    # r indices start at 1
+    sts[:, 3:] = sts[:, 3:] - 1
+
     return bpag, sts
 
 def dag_to_pag(g, l):
