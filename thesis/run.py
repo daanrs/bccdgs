@@ -3,24 +3,21 @@ import numpy as np
 
 import random
 
-from pathlib import Path
-
 from thesis.bccdgs import bccdgs
-from thesis.conversion import dag_to_mag
+from thesis.conversion import (
+    dag_to_mag, dag_to_ancestral,
+    remove_latent_variables
+)
 from thesis.r import *
 from thesis.score import score_dict
-# from thesis.compare import compare_pags, compare_causal_structure
+from thesis.compare import compare_pags, compare_causal_structure
 
-def gen_data(
-    nodes = 10,
-    degree = 3,
-    max_hidden_nodes = 2,
-    models = [1, 2],
-    samples = [4000],
-    seed = 5,
-    write = False,
-    location = Path("data")
-):
+def gen_data(nodes = 10,
+             degree = 3,
+             max_hidden_nodes = 2,
+             models = [1, 2],
+             samples = [4000],
+             seed = 5,):
 
     random.seed(seed)
     set_r_seed(seed)
@@ -42,11 +39,7 @@ def gen_data(
         .explode("samples")
         .reset_index(drop=True)
         .assign(
-            mag=lambda frame: frame.apply(
-                lambda row: dag_to_mag(row["dag"], row["hidden_nodes"]),
-                axis=1
-            ),
-            pag=lambda frame: frame.apply(
+            original_pag=lambda frame: frame.apply(
                 lambda row: dag_to_pag(row["dag"], row["hidden_nodes"]),
                 axis=1
             ),
@@ -58,35 +51,46 @@ def gen_data(
                 ),
                 axis=1
             ),
-            bccd=lambda frame: frame["bccd_and_sts"].apply(
+            pag=lambda frame: frame["bccd_and_sts"].apply(
                 lambda elem: elem[0]
             ),
+            pagtype="bccd",
             sts=lambda frame: frame["bccd_and_sts"].apply(
                 lambda elem: score_dict(elem[1])
             ),
-            bccd_mag=lambda frame: frame["bccd"].apply(pag_to_mag),
         )
         .drop(columns=["bccd_and_sts"])
-        .dropna()
-        .assign(
-            bccd_mp=lambda frame: frame["bccd_mag"].apply(mag_to_pag),
-        )
     )
-
-    if write:
-        df.to_pickle(f"{location}/{nodes}_{degree}.pkl")
-
     return df
 
-def run_bccdgs(df, n, k, min_prob):
+def mag_df(df):
+    df = (
+        pd.concat((
+            df.assign(
+                pag=lambda frame: frame.apply(
+                    lambda row: dag_to_mag(row["dag"], row["hidden_nodes"]),
+                    axis=1
+                ),
+                pagtype="original"
+            ),
+            df.assign(
+                pag=lambda frame: frame["pag"].apply(pag_to_mag),
+            )
+        ))
+        .rename(columns={"pagtype": "magtype", "pag": "mag"})
+    )
+    return df
+
+def bccdgs_df(df, n, k, min_prob):
     df =  (
-        df.assign(
+        df[df["magtype"] == "bccd"]
+        .assign(
             n=n,
             k=k,
             min_prob=min_prob,
             bccdgs_and_iter=lambda frame: frame.apply(
                 lambda row: bccdgs(
-                    row["bccd_mag"],
+                    row["mag"],
                     row["sts"],
                     row["n"],
                     row["k"],
@@ -94,15 +98,48 @@ def run_bccdgs(df, n, k, min_prob):
                 ),
                 axis = 1
             ),
-            bccdgs_mag=lambda frame: frame["bccdgs_and_iter"].apply(
+            mag=lambda frame: frame["bccdgs_and_iter"].apply(
                 lambda elem: elem[0]
             ),
             it=lambda frame: frame["bccdgs_and_iter"].apply(
                 lambda elem: elem[1]
             ),
-            bccdgs = lambda frame: frame["bccdgs_mag"].apply(mag_to_pag)
+            magtype="bccdgs",
         )
         .drop(columns=["bccdgs_and_iter"])
     )
+    return df
 
+def pag_df(df):
+    df = (
+        df.assign(
+            mag=lambda frame: frame["mag"].apply(mag_to_pag)
+        )
+        .rename(columns={"magtype": "pagtype", "mag": "pag"})
+    )
+    return df
+
+def pag_score_df(df):
+    df = (
+        df.assign(
+            pag_acc=lambda frame: frame.agg(
+                lambda row: compare_pags(
+                    row["original_pag"],
+                    row["pag"]
+                ),
+                axis=1
+            ),
+            causal_acc = lambda frame: frame.agg(
+                lambda row: compare_causal_structure(
+                    row["pag"],
+                    remove_latent_variables(
+                        dag_to_ancestral(row["dag"]),
+                        row["hidden_nodes"]
+                    )
+                ),
+                axis=1
+            )
+        )
+        .drop(columns = [ "pag", "dag", "original_pag", "sts", "hidden_nodes"])
+    )
     return df
