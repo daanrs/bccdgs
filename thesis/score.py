@@ -32,7 +32,14 @@ def score_dict(sts):
 def filter_min_score(sts, min_prob):
     return {k: s[s[:, 0] > min_prob] for k, s in sts.items()}
 
-def score(g, gt, cause, cause_or, edge, noncause, indep):
+def score(g,
+          gt,
+          cause=np.array([]),
+          cause_or=np.array([]),
+          edge=np.array([]),
+          noncause=np.array([]),
+          indep=np.array([])):
+
     s = 0
     if (cause.size > 0):
         s += calc_score(s_cause(gt, cause[:, 1:].astype(int)), cause[:, 0])
@@ -55,7 +62,7 @@ def calc_score(g_sts, sts_score):
     """
     scoring function = np.sum(np.log(1 - false_c) - np.log(false_c))
     """
-    false_sts = sts_score[g_sts]
+    false_sts = sts_score[~g_sts]
     return np.sum(np.log(1 - false_sts) - np.log(false_sts))
 
 def s_noncause(gt, sts):

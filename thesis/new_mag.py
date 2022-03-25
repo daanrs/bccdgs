@@ -12,8 +12,10 @@ def gen_new_mag(g, sts, n, k):
     Generate the n best scoring mags with k edges changed.
     """
     # edges and marks to change for one graph
-    marks = np.array([(0, 0), (1, 2), (2, 1), (2, 2)])
-    edges = edges_from_shape(g.shape[0])
+    # marks = np.array([(0, 0), (1, 2), (2, 1), (2, 2)])
+    marks = np.array([(1, 2), (2, 1), (2, 2)])
+    # edges = edges_from_shape(g.shape[0])
+    edges = edges_from_skeleton(g)
 
     # get new arrays of all edge and mark changes
     size, edges, marks = changes(edges, marks, k)
@@ -45,6 +47,11 @@ def edges_from_shape(n):
     edges = choices(np.arange(n), 2)
     edges = add_edge_reverse(edges)
     return edges
+
+def edges_from_skeleton(g):
+    e = np.transpose(np.nonzero(g))
+    e = e[e[:, 0] < e[:, 1]]
+    return add_edge_reverse(e)
 
 def changes(edges, marks, k):
     """

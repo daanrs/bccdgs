@@ -21,7 +21,9 @@ get_cor <- function(g, L, n) {
   d <- pcalg::rmvDAG(n, g, errDist="normal")
 
   R <- cor(d)
-  R <- R[-L,-L]
+  if (length(L) > 0) {
+    R <- R[-L,-L]
+  }
   return(R)
 }
 

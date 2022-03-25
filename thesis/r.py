@@ -13,13 +13,13 @@ def set_r_seed(s):
 
 def gen_graph(v, deg):
     prob = deg / (v - 1)
-    return pcalg_to_dag(b.gen_graph(v, prob))
+    return b.gen_graph(v, prob)
 
 def run_bccd(g, l, n):
-    g = dag_to_pcalg(g)
 
     # r indices start at 1. TODO: copy?
-    l = l.copy() + 1
+    if l.size > 0:
+        l = l.copy() + 1
 
     c = b.get_cor(
         g,
@@ -41,7 +41,6 @@ def dag_to_pag(g, l):
     # r indices start at 1. TODO: copy?
     l = l.copy() + 1
 
-    g = dag_to_pcalg(g)
     return pcalg_to_pag(b.get_pag(g, l))
 
 def pag_to_mag(g):
@@ -56,12 +55,6 @@ def pag_to_mag(g):
 def mag_to_pag(g):
     g = pag_to_pcalg(g)
     return pcalg_to_pag(b.mag_to_pag(g))
-
-def dag_to_pcalg(g):
-    return g.copy().T
-
-def pcalg_to_dag(g):
-    return np.array(g).T
 
 def pag_to_pcalg(g):
     g = g.copy().T

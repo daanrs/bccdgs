@@ -65,25 +65,17 @@ def gen_data(nodes = 10,
 
 def mag_df(df):
     df = (
-        pd.concat((
-            df.assign(
-                pag=lambda frame: frame.apply(
-                    lambda row: dag_to_mag(row["dag"], row["hidden_nodes"]),
-                    axis=1
-                ),
-                pagtype="original"
-            ),
-            df.assign(
-                pag=lambda frame: frame["pag"].apply(pag_to_mag),
-            )
-        ))
+        df.assign(
+            pag=lambda frame: frame["pag"].apply(pag_to_mag),
+            pagtype="bccdmp"
+        )
         .rename(columns={"pagtype": "magtype", "pag": "mag"})
     )
     return df
 
 def bccdgs_df(df, n, k, min_prob):
     df =  (
-        df[df["magtype"] == "bccd"]
+        df[df["magtype"] == "bccdmp"]
         .assign(
             n=n,
             k=k,
@@ -113,10 +105,11 @@ def bccdgs_df(df, n, k, min_prob):
 def pag_df(df):
     df = (
         df.assign(
-            mag=lambda frame: frame["mag"].apply(mag_to_pag)
+            mag=lambda frame: frame["mag"].apply(mag_to_pag),
         )
         .rename(columns={"magtype": "pagtype", "mag": "pag"})
     )
+
     return df
 
 def pag_score_df(df):
@@ -133,7 +126,7 @@ def pag_score_df(df):
                 lambda row: compare_causal_structure(
                     row["pag"],
                     remove_latent_variables(
-                        dag_to_ancestral(row["dag"]),
+                        dag_to_ancestral(row["dag"].copy()),
                         row["hidden_nodes"]
                     )
                 ),
