@@ -1,6 +1,6 @@
 # type: ignore
 
-# import numpy as np
+import numpy as np
 import pandas as pd
 
 from thesis.run import (
@@ -12,47 +12,49 @@ from thesis.run import (
 )
 
 def main():
-    df_10 = pd.concat(
-        [
-            gen_data(
-                nodes = 10,
-                degree = d,
-                max_hidden_nodes = 2,
-                models = np.arange(100),
-                samples = 2 ** np.arange(7, 18),
-                seed = 5,
-            )
-            for d in [2, 3, 4]
-        ]
-    )
+    # df_10 = pd.concat(
+        # [
+            # gen_data(
+                # nodes = 10,
+                # degree = d,
+                # max_hidden_nodes = 2,
+                # models = np.arange(100),
+                # samples = 2 ** np.arange(7, 18),
+                # seed = 5,
+            # )
+            # for d in [2, 3, 4]
+        # ]
+    # )
 
-    df_5_15 = pd.concat((
-        gen_data(
-            nodes = 5,
-            degree = 3,
-            max_hidden_nodes = 1,
-            models = np.arange(100),
-            samples = 2 ** np.arange(7, 18),
-            seed = 5,
-        ),
-        gen_data(
-            nodes = 15,
-            degree = 3,
-            max_hidden_nodes = 3,
-            models = np.arange(100),
-            samples = 2 ** np.arange(7, 18),
-            seed = 5,
-        )
-    ))
+    # df_5_15 = pd.concat((
+        # gen_data(
+            # nodes = 5,
+            # degree = 3,
+            # max_hidden_nodes = 1,
+            # models = np.arange(100),
+            # samples = 2 ** np.arange(7, 18),
+            # seed = 5,
+        # ),
+        # gen_data(
+            # nodes = 15,
+            # degree = 3,
+            # max_hidden_nodes = 3,
+            # models = np.arange(100),
+            # samples = 2 ** np.arange(7, 18),
+            # seed = 5,
+        # )
+    # ))
+    # df = pd.concat((df_5_15, df_10))
 
-    df = pd.concat((df_5_15, df_10))
-    # df = gen_data(models=range(2))
+    df = gen_data(models=range(2))
+
     df.to_pickle("data/data_df.pkl")
 
     mdf = mag_df(df)
     bdf = pd.concat([
-        bccdgs_df(mdf, 1, k, p)
+        bccdgs_df(mdf, 1, k, skel, p)
         for k in [1, 2]
+        for skel in [True, False]
         for p in [0.5]
     ])
 

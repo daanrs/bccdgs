@@ -5,7 +5,7 @@ import random
 
 from thesis.bccdgs import bccdgs
 from thesis.conversion import (
-    dag_to_mag, dag_to_ancestral,
+    dag_to_ancestral,
     remove_latent_variables
 )
 from thesis.r import *
@@ -43,6 +43,13 @@ def gen_data(nodes = 10,
                 lambda row: dag_to_pag(row["dag"], row["hidden_nodes"]),
                 axis=1
             ),
+        )
+    )
+    return df
+
+def bccd_df(df):
+    df = (
+        df.assign(
             bccd_and_sts=lambda frame: frame.apply(
                 lambda row: run_bccd(
                     row["dag"],
@@ -59,26 +66,29 @@ def gen_data(nodes = 10,
                 lambda elem: score_dict(elem[1])
             ),
         )
-        .drop(columns=["bccd_and_sts"])
+        # .drop(columns=["bccd_and_sts"])
     )
     return df
+
 
 def mag_df(df):
     df = (
         df.assign(
-            pag=lambda frame: frame["pag"].apply(pag_to_mag),
-            pagtype="bccdmp"
+            mag=lambda frame: frame["pag"].apply(pag_to_mag),
+            magtype="bccdmp"
         )
-        .rename(columns={"pagtype": "magtype", "pag": "mag"})
+        .drop(columns=["pagtype", "pag"])
     )
     return df
 
-def bccdgs_df(df, n, k, min_prob):
+def bccdgs_df(df, n, k, skeleton, min_prob):
+    df = df[df["magtype"] == "bccdmp"]
+
     df =  (
-        df[df["magtype"] == "bccdmp"]
-        .assign(
+        df.assign(
             n=n,
             k=k,
+            skeleton=skeleton,
             min_prob=min_prob,
             bccdgs_and_iter=lambda frame: frame.apply(
                 lambda row: bccdgs(
@@ -86,6 +96,7 @@ def bccdgs_df(df, n, k, min_prob):
                     row["sts"],
                     row["n"],
                     row["k"],
+                    row["skeleton"],
                     row["min_prob"]
                 ),
                 axis = 1
@@ -105,9 +116,10 @@ def bccdgs_df(df, n, k, min_prob):
 def pag_df(df):
     df = (
         df.assign(
-            mag=lambda frame: frame["mag"].apply(mag_to_pag),
+            pag=lambda frame: frame["mag"].apply(mag_to_pag),
+            pagtype=lambda frame: frame["magtype"]
         )
-        .rename(columns={"magtype": "pagtype", "mag": "pag"})
+        .drop(columns=["magtype", "mag"])
     )
 
     return df

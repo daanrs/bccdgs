@@ -9,11 +9,16 @@ def score_dict(sts):
     [x,x,z] = unconditional indep. : c = -3;    z < x # confounder/paths
     """
 
-    if ((sts[:, 0] < -3)
-            | (sts[:, 0] == -2)
-            | (sts[:, 0] > 2)
-            ).any():
-        raise ValueError("Statement type not in (-3, -1, 0, 1, 2)")
+    # if ((sts[:, 1] < -3)
+            # | (sts[:, 1] == -2)
+            # | (sts[:, 1] > 2)
+            # ).any():
+        # raise ValueError("Statement type not in (-3, -1, 0, 1, 2)")
+
+    print(sts[((sts[:, 1] < -3)
+            | (sts[:, 1] == -2)
+            | (sts[:, 1] > 2)
+            )])
 
     sts_cause = sts[sts[:, 1] == 2]
     sts_cause_or = sts[sts[:, 1] == 1]

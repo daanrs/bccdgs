@@ -2,10 +2,6 @@ set_seed <- function(s) {
   set.seed(s)
 }
 
-matrix_to_graph <- function(g) {
-  return(as(g, "graphNEL"))
-}
-
 graph_to_matrix <- function(g) {
   return(as(g, "matrix"))
 }
@@ -17,7 +13,7 @@ gen_graph <- function(v, prob) {
 
 get_cor <- function(g, L, n) {
   # generate samples of DAG using standard normal error distribution
-  g <- matrix_to_graph(g)
+  g <- pcalg::getGraph(g)
   d <- pcalg::rmvDAG(n, g, errDist="normal")
 
   R <- cor(d)
@@ -27,8 +23,8 @@ get_cor <- function(g, L, n) {
   return(R)
 }
 
-get_pag <- function(g, L) {
-  g <- matrix_to_graph(g)
+dag_to_pag <- function(g, L) {
+  g <- as(g, "graphNEL")
 
   # Find PAG
   n <- 10^9
@@ -46,21 +42,21 @@ get_pag <- function(g, L) {
 }
 
 run_bccd <- function(R, n) {
-  bccd.fit <- RUcausal::BCCD(R, n, provide_detailed_output = TRUE,
-                   no_selection_bias = TRUE)
+  bccd.fit <- RUcausal::BCCD(R, n, no_selection_bias=TRUE, provide_detailed_output = TRUE)
 
   bpag <- bccd.fit$PAG
 
   # transform to pcalg style
-  bpag <- t(bpag)
-  circles <- bpag == 1
-  tails <- bpag == 3
-  bpag[circles] <- 3
-  bpag[tails] <- 1
+  #bpag <- t(bpag)
+  #circles <- bpag == 1
+  #tails <- bpag == 3
+  #bpag[circles] <- 3
+  #bpag[tails] <- 1
 
   sts = bccd.fit$prob_L_max
+  sts_use = bccd.fit$prob_L_use
 
-  return(list(bpag, sts))
+  return(list(bpag, sts, sts_use))
 }
 
 pag_to_mag <- function(pag) {

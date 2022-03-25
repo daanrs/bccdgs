@@ -1,10 +1,7 @@
-import numpy as np
-
 import rpy2.robjects as ro
 from rpy2.robjects.packages import importr
 from rpy2.robjects import numpy2ri
-
-numpy2ri.activate()
+from rpy2.robjects.conversion import localconverter
 
 b = importr('bccdgsr')
 
@@ -13,7 +10,10 @@ def set_r_seed(s):
 
 def gen_graph(v, deg):
     prob = deg / (v - 1)
-    return b.gen_graph(v, prob)
+    g = b.gen_graph(v, prob)
+    with localconverter(ro.default_converter + numpy2ri.converter):
+        g = ro.conversion.rpy2py(g)
+    return g
 
 def run_bccd(g, l, n):
 
@@ -21,43 +21,79 @@ def run_bccd(g, l, n):
     if l.size > 0:
         l = l.copy() + 1
 
+    with localconverter(ro.default_converter + numpy2ri.converter):
+        g = ro.conversion.py2rpy(g)
+
     c = b.get_cor(
         g,
         ro.IntVector(l),
         n
     )
 
-    bpag, sts = b.run_bccd(c, n)
-    bpag = pcalg_to_pag(bpag)
+    bpag, sts, sts_use = b.run_bccd(c, n)
+
+    with localconverter(ro.default_converter + numpy2ri.converter):
+        bpag = ro.conversion.rpy2py(bpag)
+        sts = ro.conversion.rpy2py(sts)
+        sts_use = ro.conversion.rpy2py(sts_use)
+        c = ro.conversion.rpy2py(c)
+
+    # bpag = g_switch(bpag)
 
     # we only take what we care about
     sts = sts[:, [0, 2, 3, 4, 5]]
     # r indices start at 1
     sts[:, 2:] = sts[:, 2:] - 1
 
-    return bpag, sts
+    return bpag, sts, sts_use, c
 
 def dag_to_pag(g, l):
     # r indices start at 1. TODO: copy?
-    l = l.copy() + 1
+    if l.size > 0:
+        l = l.copy() + 1
 
-    return pcalg_to_pag(b.get_pag(g, l))
+    with localconverter(ro.default_converter + numpy2ri.converter):
+        g = ro.conversion.py2rpy(g)
+        l = ro.IntVector(l)
+
+    gp = b.dag_to_pag(g, l)
+    with localconverter(ro.default_converter + numpy2ri.converter):
+        gp = ro.conversion.rpy2py(gp)
+
+    return g_switch(gp)
 
 def pag_to_mag(g):
-    g = pag_to_pcalg(g)
+    g = g_switch(g)
 
-    gp = b.pag_to_mag(g)
-    if (gp == 0).all():
+    with localconverter(ro.default_converter + numpy2ri.converter):
+        g = ro.conversion.py2rpy(g)
+
+    gm = b.pag_to_mag(g)
+    with localconverter(ro.default_converter + numpy2ri.converter):
+        gm = ro.conversion.rpy2py(gm)
+
+    if (gm == 0).all():
         return None
     else:
-        return pcalg_to_pag(gp)
+        return g_switch(gm)
 
 def mag_to_pag(g):
-    g = pag_to_pcalg(g)
-    return pcalg_to_pag(b.mag_to_pag(g))
+    g = g_switch(g)
 
-def pag_to_pcalg(g):
-    g = g.copy().T
+    with localconverter(ro.default_converter + numpy2ri.converter):
+        g = ro.conversion.py2rpy(g)
+
+    gp = b.mag_to_pag(g)
+    with localconverter(ro.default_converter + numpy2ri.converter):
+        gp = ro.conversion.rpy2py(gp)
+
+    return g_switch(gp)
+
+def g_switch(g):
+    """
+    Switches between pcalg and bccd pag format
+    """
+    g = g.T.copy()
 
     # switch circles and tails
     circles = g == 1
@@ -66,15 +102,3 @@ def pag_to_pcalg(g):
     g[tails] = 1
 
     return g
-
-def pcalg_to_pag(g):
-    g = np.array(g).T
-
-    # switch circles and tails
-    circles = g == 1
-    tails = g == 3
-    g[circles] = 3
-    g[tails] = 1
-
-    return g
-
