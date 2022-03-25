@@ -1,6 +1,5 @@
 from thesis.score import score, filter_min_score
 from thesis.util import (
-    add_edge_reverse,
     dag_to_ancestral, to_directed,
     mag_to_ancestral,
 )
@@ -10,6 +9,24 @@ from numba import njit
 import numpy as np
 
 def bccdgs(mag, sts, n, k, skeleton, min_prob, max_iter=1000):
+    """
+    Run greedy search on bccd results.
+
+    Parameters
+    ----------
+    mag: np.array
+        square array representing an adjacency matrix
+    sts: dict
+        dictionary of np.arrays detailing the bccd logical statements
+    n: int
+        how many best mags to return
+    k: int
+        how many changes to make in one step
+    skeleton: bool
+        whether to keep the graph skeleton
+    min_prob: float
+        what probability a statement needs to be to be taken into account
+    """
     sts = filter_min_score(sts, min_prob)
 
     mag = mag.copy()
