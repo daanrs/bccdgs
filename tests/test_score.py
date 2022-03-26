@@ -1,4 +1,4 @@
-from thesis.score import *
+from bccdgs.score import *
 
 import numpy as np
 

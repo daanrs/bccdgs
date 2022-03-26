@@ -1,4 +1,4 @@
-from thesis.r import *
+from bccdgs.r import *
 
 import pytest
 import numpy as np

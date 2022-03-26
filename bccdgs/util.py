@@ -125,4 +125,3 @@ def compare_causal_structure(pag, ancestral_dag):
     total = (tails | arrows).sum()
 
     return (correct_tails + correct_arrows)/total
-

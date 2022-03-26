@@ -1,4 +1,4 @@
-from thesis import __version__
+from bccdgs import __version__
 
 
 def test_version():

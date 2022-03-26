@@ -4,7 +4,7 @@ def score_dict(sts):
     """
     [x,y,y] = x=>y         || x=>S : c = +2
     [x,y,z] = x=>y || x=>z || x=>S : c = +1
-    [x,x,z] = no edge x-z          : c =  0;    x < z
+    [x,x,z] = no no_edge x-z          : c =  0;    x < z
     [x,y,x] = x/>y         && x/>S : c = -1
     [x,x,z] = unconditional indep. : c = -3;    z < x # confounder/paths
     """
@@ -15,21 +15,21 @@ def score_dict(sts):
             # ).any():
         # raise ValueError("Statement type not in (-3, -1, 0, 1, 2)")
 
-    print(sts[((sts[:, 1] < -3)
-            | (sts[:, 1] == -2)
-            | (sts[:, 1] > 2)
-            )])
+    # print(sts[((sts[:, 1] < -3)
+            # | (sts[:, 1] == -2)
+            # | (sts[:, 1] > 2)
+            # )])
 
     sts_cause = sts[sts[:, 1] == 2]
     sts_cause_or = sts[sts[:, 1] == 1]
-    sts_edge = sts[sts[:, 1] == 0]
+    sts_no_edge = sts[sts[:, 1] == 0]
     sts_noncause = sts[sts[:, 1] == -1]
     sts_indep = sts[sts[:, 1] == -3]
 
     return {
         "cause" : sts_cause[:, [0, 2, 3]],
         "cause_or": sts_cause_or[:, [0, 2, 3, 2, 4]],
-        "edge" : sts_edge[:, [0, 2, 4]],
+        "no_edge" : sts_no_edge[:, [0, 2, 4]],
         "noncause" : sts_noncause[:, [0, 2, 3]],
         "indep" : sts_indep[:, [0, 2, 4]],
     }
@@ -41,7 +41,7 @@ def score(g,
           gt,
           cause=np.array([]),
           cause_or=np.array([]),
-          edge=np.array([]),
+          no_edge=np.array([]),
           noncause=np.array([]),
           indep=np.array([])):
 
@@ -52,8 +52,8 @@ def score(g,
     if (cause_or.size > 0):
         s += calc_score(s_cause_or(gt, cause_or[:, 1:].astype(int)), cause_or[:, 0])
 
-    if (edge.size > 0):
-        s += calc_score(s_edge(g, edge[:, 1:].astype(int)), edge[:, 0])
+    if (no_edge.size > 0):
+        s += calc_score(s_no_edge(g, no_edge[:, 1:].astype(int)), no_edge[:, 0])
 
     if (noncause.size > 0):
         s += calc_score(s_noncause(gt, noncause[:, 1:].astype(int)), noncause[:, 0])
@@ -79,13 +79,19 @@ def s_cause_or(gt, sts):
 def s_cause(gt, sts):
     return gt[sts[:, 0], sts[:, 1]] == 1
 
-def s_edge(g, sts):
-    return g[sts[:, 0], sts[:, 1]] != 0
+def s_no_edge(g, sts):
+    return g[sts[:, 0], sts[:, 1]] == 0
+
+def s_common_cause(gt, sts):
+    return (
+        (gt.T[sts[:, 0]] == 1)
+        & (gt.T[sts[:, 1]] == 1)
+    ).any(axis=1)
 
 def s_indep(g, gt, sts):
     return ~ (
         # x *-* y
-        s_edge(g, sts)
+        ~ s_no_edge(g, sts)
 
         # x -> ... -> y
         | s_cause(gt, sts)
@@ -94,9 +100,6 @@ def s_indep(g, gt, sts):
         | s_cause(gt, sts[:, ::-1])
 
         # x <- ... <- z -> ... -> y
-        | (
-            (gt[:, sts[:, 0]] == 1)
-            & (gt[:, sts[:, 1]] == 1)
-        ).any(axis=0)
+        | s_common_cause(gt, sts)
     )
 

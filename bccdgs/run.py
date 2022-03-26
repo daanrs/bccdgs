@@ -3,20 +3,20 @@ import numpy as np
 
 import random
 
-from thesis.bccdgs import bccdgs
-from thesis.conversion import (
+from bccdgs.bccdgs import bccdgs
+from bccdgs.util import (
     dag_to_ancestral,
-    remove_latent_variables
+    remove_latent_variables,
+    compare_pags, compare_causal_structure
 )
-from thesis.r import *
-from thesis.score import score_dict
-from thesis.compare import compare_pags, compare_causal_structure
+from bccdgs.r import *
+from bccdgs.score import score_dict
 
 def gen_data(nodes = 10,
              degree = 3,
              max_hidden_nodes = 2,
              models = [1, 2],
-             samples = [4000],
+             samples = [4096],
              seed = 5,):
 
     random.seed(seed)
@@ -30,7 +30,7 @@ def gen_data(nodes = 10,
                 "samples": samples,
                 "degree" : degree,
                 "hidden_nodes": np.array(random.sample(
-                    range(nodes), max_hidden_nodes
+                    range(nodes), random.choice(range(1,max_hidden_nodes))
                 )),
                 "dag": gen_graph(nodes, degree),
             }
@@ -66,7 +66,7 @@ def bccd_df(df):
                 lambda elem: score_dict(elem[1])
             ),
         )
-        # .drop(columns=["bccd_and_sts"])
+        .drop(columns=["bccd_and_sts"])
     )
     return df
 

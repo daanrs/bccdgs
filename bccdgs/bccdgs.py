@@ -1,5 +1,5 @@
-from thesis.score import score, filter_min_score
-from thesis.util import (
+from bccdgs.score import score, filter_min_score
+from bccdgs.util import (
     dag_to_ancestral, to_directed,
     mag_to_ancestral,
 )
@@ -8,7 +8,7 @@ from numba import njit
 
 import numpy as np
 
-def bccdgs(mag, sts, n, k, skeleton, min_prob, max_iter=1000):
+def bccdgs(mag, sts, n, k, skeleton, min_prob, max_iter=1000, verbose=True):
     """
     Run greedy search on bccd results.
 
@@ -39,7 +39,8 @@ def bccdgs(mag, sts, n, k, skeleton, min_prob, max_iter=1000):
     it = 0
 
     while (new_mag_score > mag_score) and (it <= max_iter):
-        print(f"{mag_score} -> {new_mag_score}")
+        if verbose:
+            print(f"skel={skeleton}, k={k}, it={it}: {mag_score} -> {new_mag_score}")
         mag = new_mag.copy()
         mag_tc = new_mag_tc
         mag_score = new_mag_score
@@ -96,8 +97,7 @@ def graphs(g, size, edges, marks):
             "Edge and mark changes need the same size in dimension 0"
         )
 
-    b = g.repeat(size, axis=0).reshape((size,) + g.shape)
-
+    b = g[np.newaxis, ...].repeat(size, axis=0)
     b[edges[:, 0], edges[:, 1], edges[:, 2]] = marks
     return b.reshape(-1, g.shape[-1], g.shape[-2])
 
