@@ -12,12 +12,15 @@ from bccdgs.util import (
 from bccdgs.r import *
 from bccdgs.score import score_dict
 
-def gen_data(nodes = 10,
-             degree = 3,
-             max_hidden_nodes = 2,
-             models = [1, 2],
-             samples = [4096],
-             seed = 5,):
+def gen_df(nodes = 10,
+           degree = 3,
+           min_latent_variables = 1,
+           max_latent_variables = 2,
+           models = range(100),
+           samples = 2 ** np.arange(7, 18),
+           # models=[1],
+           # samples=[4096],
+           seed = 5):
 
     random.seed(seed)
     set_r_seed(seed)
@@ -29,8 +32,12 @@ def gen_data(nodes = 10,
                 "nodes": nodes,
                 "samples": samples,
                 "degree" : degree,
-                "hidden_nodes": np.array(random.sample(
-                    range(nodes), random.choice(range(1,max_hidden_nodes))
+                "latent_variables": np.array(random.sample(
+                    range(nodes),
+                    random.choice(range(
+                        min_latent_variables,
+                        max_latent_variables + 1
+                    ))
                 )),
                 "dag": gen_graph(nodes, degree),
             }
@@ -40,12 +47,13 @@ def gen_data(nodes = 10,
         .reset_index(drop=True)
         .assign(
             original_pag=lambda frame: frame.apply(
-                lambda row: dag_to_pag(row["dag"], row["hidden_nodes"]),
+                lambda row: dag_to_pag(row["dag"], row["latent_variables"]),
                 axis=1
             ),
         )
     )
-    return df
+
+    return bccd_df(df)
 
 def bccd_df(df):
     df = (
@@ -53,7 +61,7 @@ def bccd_df(df):
             bccd_and_sts=lambda frame: frame.apply(
                 lambda row: run_bccd(
                     row["dag"],
-                    row["hidden_nodes"],
+                    row["latent_variables"],
                     row["samples"]
                 ),
                 axis=1
@@ -81,12 +89,11 @@ def mag_df(df):
     )
     return df
 
-def bccdgs_df(df, n, k, skeleton, min_prob):
+def bccdgs_df(df, k, skeleton, min_prob):
     df = df[df["magtype"] == "bccdmp"]
 
     df =  (
         df.assign(
-            n=n,
             k=k,
             skeleton=skeleton,
             min_prob=min_prob,
@@ -94,7 +101,6 @@ def bccdgs_df(df, n, k, skeleton, min_prob):
                 lambda row: bccdgs(
                     row["mag"],
                     row["sts"],
-                    row["n"],
                     row["k"],
                     row["skeleton"],
                     row["min_prob"]
@@ -139,12 +145,12 @@ def pag_score_df(df):
                     row["pag"],
                     remove_latent_variables(
                         dag_to_ancestral(row["dag"].copy()),
-                        row["hidden_nodes"]
+                        row["latent_variables"]
                     )
                 ),
                 axis=1
             )
         )
-        .drop(columns = [ "pag", "dag", "original_pag", "sts", "hidden_nodes"])
+        .drop(columns = [ "pag", "dag", "original_pag", "sts", "latent_variables"])
     )
     return df

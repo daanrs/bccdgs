@@ -23,10 +23,13 @@ def run_bccd(g, l, n):
 
     with localconverter(ro.default_converter + numpy2ri.converter):
         g = ro.conversion.py2rpy(g)
+        l = ro.conversion.py2rpy(l)
+        n = ro.conversion.py2rpy(n)
 
     c = b.get_cor(
         g,
-        ro.IntVector(l),
+        # ro.IntVector(l),
+        l,
         n
     )
 
@@ -35,8 +38,7 @@ def run_bccd(g, l, n):
     with localconverter(ro.default_converter + numpy2ri.converter):
         bpag = ro.conversion.rpy2py(bpag)
         sts = ro.conversion.rpy2py(sts)
-        sts_use = ro.conversion.rpy2py(sts_use)
-        c = ro.conversion.rpy2py(c)
+        # sts_use = ro.conversion.rpy2py(sts_use)
 
     # bpag = g_switch(bpag)
 
@@ -45,7 +47,7 @@ def run_bccd(g, l, n):
     # r indices start at 1
     sts[:, 2:] = sts[:, 2:] - 1
 
-    return bpag, sts, sts_use, c
+    return bpag, sts
 
 def dag_to_pag(g, l):
     # r indices start at 1. TODO: copy?

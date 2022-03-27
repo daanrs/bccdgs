@@ -4,11 +4,11 @@ from bccdgs.util import (
     mag_to_ancestral,
 )
 
-from numba import njit
+from numba import njit, prange
 
 import numpy as np
 
-def bccdgs(mag, sts, n, k, skeleton, min_prob, max_iter=1000, verbose=True):
+def bccdgs(mag, sts, k, skeleton, min_prob, max_iter=1000, verbose=True):
     """
     Run greedy search on bccd results.
 
@@ -33,26 +33,27 @@ def bccdgs(mag, sts, n, k, skeleton, min_prob, max_iter=1000, verbose=True):
     mag_tc = mag_to_ancestral(mag)
     mag_score = score(mag, mag_tc, **sts)
 
-    new_mag = gen_new_mag(mag, sts, n, k, skeleton)
+    new_mag = gen_new_mag(mag, sts, k, skeleton)
     new_mag_tc = mag_to_ancestral(new_mag)
     new_mag_score = score(new_mag, new_mag_tc, **sts)
     it = 0
 
     while (new_mag_score > mag_score) and (it <= max_iter):
         if verbose:
-            print(f"skel={skeleton}, k={k}, it={it}: {mag_score} -> {new_mag_score}")
+            print(f"skel={skeleton}, k={k}, prob={min_prob}, "
+                  + f"it={it}: {mag_score} -> {new_mag_score}")
         mag = new_mag.copy()
         mag_tc = new_mag_tc
         mag_score = new_mag_score
 
-        new_mag = gen_new_mag(mag, sts, n, k, skeleton)
+        new_mag = gen_new_mag(mag, sts, k, skeleton)
         new_mag_tc = mag_to_ancestral(new_mag)
         new_mag_score = score(new_mag, new_mag_tc, **sts)
         it += 1
 
     return mag, it
 
-def gen_new_mag(g, sts, n, k, skeleton):
+def gen_new_mag(g, sts, k, skeleton):
     """
     Generate the n best scoring mags with k edges changed.
     """
@@ -81,15 +82,8 @@ def gen_new_mag(g, sts, n, k, skeleton):
     gs = gs[valids]
     gst = gst[valids]
 
-    # get the n best mags, for which we partition the last n values
     scores = graphs_score(gs, gst, sts)
-    n_scores = scores.size - n
-
-    argp = np.argpartition(scores, n_scores)
-    # for now we just return one regardless
-    return gs[argp[-1]]
-
-    # return gs[argp[n_scores:]]
+    return gs[np.argmax(scores)]
 
 def graphs(g, size, edges, marks):
     if edges.shape[0] != marks.shape[0]:
@@ -99,12 +93,13 @@ def graphs(g, size, edges, marks):
 
     b = g[np.newaxis, ...].repeat(size, axis=0)
     b[edges[:, 0], edges[:, 1], edges[:, 2]] = marks
-    return b.reshape(-1, g.shape[-1], g.shape[-2])
+    return b.reshape(-1, g.shape[-2], g.shape[-1])
 
-@njit
+@njit(parallel=True)
+# @njit
 def graphs_tc(gs):
     gst = np.empty(gs.shape, dtype=np.int_)
-    for i in range(gst.shape[0]):
+    for i in prange(gst.shape[0]):
         gst[i] = dag_to_ancestral(to_directed(gs[i]))
     return gst
 
@@ -183,6 +178,7 @@ def self_product_power(x, k):
     return xi
 
 def broadcast_concatenate(x, y):
+    # TODO: this function is cursed
     ys = np.array(y.shape)[::-1]
     ys[0] = 1
     ys = tuple(ys)
@@ -198,11 +194,13 @@ def product_align(x, y):
     and y.shape = (y1, y2, ..., yn)
     return xs and ys with shape (x1 * y1, x2, ...) (x1 * y1, y2, ...)
     """
-    x_prod_dim = x.shape[0]
-    y_prod_dim = y.shape[0]
-    xs = np.broadcast_to(x, (y_prod_dim,) + (x.shape))
-    ys = np.broadcast_to(y, (x_prod_dim,) + (y.shape))
+    # repeat all rows y1 times
+    xs = x.repeat(y.shape[0], axis=0)
 
-    xs = xs.reshape((-1,) + (x.shape[1:]), order='F')
-    ys = ys.reshape((-1,) + (y.shape[1:]), order='C')
+    # repeat the whole x1 times by temporarily adding one axis
+    ys = (
+        y[np.newaxis, ...]
+        .repeat(x.shape[0], axis=0)
+        .reshape((-1,) + y.shape[1:])
+    )
     return xs, ys

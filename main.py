@@ -1,118 +1,136 @@
-# type: ignore
 
-import numpy as np
 import pandas as pd
 
 from pathlib import Path
 
 from bccdgs.run import (
-    gen_data,
-    bccd_df,
+    gen_df,
     mag_df,
     bccdgs_df,
     pag_df,
     pag_score_df
 )
 
-def main(data_loc, mdf_loc, bdf_loc, pdf_loc, psdf_loc, overwrite):
-    if (not data_loc.exists()) or overwrite:
-        # df_10 = pd.concat(
-            # [
-                # gen_data(
-                    # nodes = 10,
-                    # degree = d,
-                    # max_hidden_nodes = 2,
-                    # models = np.arange(100),
-                    # samples = 2 ** np.arange(7, 18),
-                    # seed = 5,
-                # )
-                # for d in [2, 3, 4]
-            # ]
-        # )
+def gen_the_thing(nodes,
+                  degree,
+                  max_latent_variables,
+                  location = Path("data"),
+                  ):
 
-        # df_5_15 = pd.concat((
-            # gen_data(
-                # nodes = 5,
-                # degree = 3,
-                # max_hidden_nodes = 1,
-                # models = np.arange(100),
-                # samples = 2 ** np.arange(7, 18),
-                # seed = 5,
-            # ),
-            # gen_data(
-                # nodes = 15,
-                # degree = 3,
-                # max_hidden_nodes = 3,
-                # models = np.arange(100),
-                # samples = 2 ** np.arange(7, 18),
-                # seed = 5,
-            # )
-        # ))
-        # df = pd.concat((df_5_15, df_10))
+    location = location / f"{nodes}_{degree}"
+    location.mkdir()
 
-        df = bccd_df(gen_data(
-            nodes = 10,
-            degree = 3,
-            max_hidden_nodes = 2,
-            models = np.arange(100),
-            samples = [4096],
-            seed = 5,
-        ))
-
-        # df = bccd_df(gen_data(models=range(2)))
-
-        df.to_pickle(data_loc)
-    else:
-        df = pd.read_pickle(data_loc)
+    df = gen_df(
+        nodes=nodes,
+        degree=degree,
+        max_latent_variables=max_latent_variables
+    )
+    df.to_pickle(location / "data_full.pkl")
 
     selection_bias = df["pag"].apply(
         lambda g: ((g == 1) & (g.T == 1)).any()
     )
     df = df[~selection_bias]
+    df.to_pickle(location / "data_no_selbias.pkl")
 
-    if not mdf_loc.exists() or overwrite:
-        mdf = mag_df(df)
-        mdf.to_pickle(mdf_loc)
-    else:
-        mdf = pd.read_pickle(mdf_loc)
+    mdf = mag_df(df)
+    mdf.to_pickle(location / "mag_no_selbias.pkl")
 
     no_valid_mag = mdf["mag"].isna()
     mdf = mdf[~no_valid_mag]
     df = df[~no_valid_mag]
 
-    if not bdf_loc.exists() or overwrite:
-        bdf = pd.concat([
-            bccdgs_df(mdf, 1, k, skel, p)
-            for k in [1, 2]
-            for skel in [True, False]
-            for p in [0, 0.1, 0.3, 0.5, 0.7, 0.9]
-            # for p in [0.5]
-        ])
-        bdf.to_pickle(bdf_loc)
-    else:
-        bdf = pd.read_pickle(bdf_loc)
+    df.to_pickle(location / "data_valid.pkl")
+    mdf.to_pickle(location / "mag_valid.pkl")
+
+def do_the_thing(nodes,
+                 degree,
+                 k,
+                 skeleton,
+                 min_prob,
+                 location = Path("data"),
+                 ):
+
+    location = location / f"{nodes}_{degree}"
+    if not location.exists():
+        raise ValueError("data does not exist")
+
+
+    mdf = pd.read_pickle(location / "mag_valid.pkl")
+    df = pd.read_pickle(location / "data_valid.pkl")
+
+    location = location / f"{k}_{skeleton}_{min_prob}"
+    location.mkdir()
+
+    bdf = bccdgs_df(mdf, k, skeleton, min_prob)
 
     mbdf = pd.concat((mdf, bdf))
+    mbdf.to_pickle(location / "bccdgs_mag.pkl")
 
-    if not pdf_loc.exists() or overwrite:
-        pdf = pd.concat((
-            pag_df(mbdf), df
-        ))
-        pdf.to_pickle(pdf_loc)
-    else:
-        pdf = pd.read_pickle(pdf_loc)
+    pdf = pd.concat((
+        pag_df(mbdf), df
+    ))
+    pdf.to_pickle(location / "bccdgs_pag.pkl")
 
-    if not psdf_loc.exists() or overwrite:
-        psdf = pag_score_df(pdf)
-        psdf.to_pickle(psdf_loc)
+    psdf = pag_score_df(pdf)
+    psdf.to_pickle(location / "bccdgs_score.pkl")
+
+
+def main():
+
+    for d in [2, 3, 4]:
+        gen_the_thing(
+            nodes=10,
+            degree=d,
+            max_latent_variables=2,
+        )
+
+    gen_the_thing(
+        nodes=5,
+        degree=3,
+        max_latent_variables=1
+    )
+
+    gen_the_thing(
+        nodes=15,
+        degree=3,
+        max_latent_variables=3
+    )
+
+    for s in [True, False]:
+        for k in [1, 2]:
+            do_the_thing(
+                nodes=10,
+                degree=3,
+                k=k,
+                skeleton=s,
+                min_prob=0.5
+            )
+
+    for d in [2, 4]:
+        do_the_thing(
+            nodes=10,
+            degree=d,
+            k=1,
+            skeleton=False,
+            min_prob=0.5
+        )
+
+    do_the_thing(
+        nodes=5,
+        degree=3,
+        k=1,
+        skeleton=False,
+        min_prob=0.5
+    )
+
+    do_the_thing(
+        nodes=15,
+        degree=3,
+        k=1,
+        skeleton=False,
+        min_prob=0.5
+    )
 
 if __name__ == "__main__":
-    loc = Path("data")
-    main(
-        loc / "data.pkl",
-        loc / "mdf.pkl",
-        loc / "bdf.pkl",
-        loc / "pdf.pkl",
-        loc / "psdf.pkl",
-        True
-    )
+    main()

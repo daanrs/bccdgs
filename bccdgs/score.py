@@ -1,5 +1,7 @@
 import numpy as np
 
+from numba import njit
+
 def score_dict(sts):
     """
     [x,y,y] = x=>y         || x=>S : c = +2
@@ -14,11 +16,6 @@ def score_dict(sts):
             # | (sts[:, 1] > 2)
             # ).any():
         # raise ValueError("Statement type not in (-3, -1, 0, 1, 2)")
-
-    # print(sts[((sts[:, 1] < -3)
-            # | (sts[:, 1] == -2)
-            # | (sts[:, 1] > 2)
-            # )])
 
     sts_cause = sts[sts[:, 1] == 2]
     sts_cause_or = sts[sts[:, 1] == 1]
@@ -39,26 +36,27 @@ def filter_min_score(sts, min_prob):
 
 def score(g,
           gt,
-          cause=np.array([]),
-          cause_or=np.array([]),
-          no_edge=np.array([]),
-          noncause=np.array([]),
-          indep=np.array([])):
+          cause,
+          cause_or,
+          no_edge,
+          noncause,
+          indep):
 
     s = 0
-    if (cause.size > 0):
+
+    if cause.size > 0:
         s += calc_score(s_cause(gt, cause[:, 1:].astype(int)), cause[:, 0])
 
-    if (cause_or.size > 0):
+    if cause_or.size > 0:
         s += calc_score(s_cause_or(gt, cause_or[:, 1:].astype(int)), cause_or[:, 0])
 
-    if (no_edge.size > 0):
+    if no_edge.size > 0:
         s += calc_score(s_no_edge(g, no_edge[:, 1:].astype(int)), no_edge[:, 0])
 
-    if (noncause.size > 0):
+    if noncause.size > 0:
         s += calc_score(s_noncause(gt, noncause[:, 1:].astype(int)), noncause[:, 0])
 
-    if (indep.size > 0):
+    if indep.size > 0:
         s += calc_score(s_indep(g, gt, indep[:, 1:].astype(int)), indep[:, 0])
 
     return s
@@ -102,4 +100,3 @@ def s_indep(g, gt, sts):
         # x <- ... <- z -> ... -> y
         | s_common_cause(gt, sts)
     )
-
