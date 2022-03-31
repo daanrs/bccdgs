@@ -37,11 +37,11 @@ def bccdgs(mag, sts, k, skeleton, min_prob, max_iter=1000, verbose=True):
     new_mag_tc = mag_to_ancestral(new_mag)
     new_mag_score = score(new_mag, new_mag_tc, **sts)
     it = 0
+    if verbose:
+        print(f"skel={skeleton}, k={k}, prob={min_prob}, "
+              + f"it={it}: {mag_score} -> {new_mag_score}")
 
     while (new_mag_score > mag_score) and (it <= max_iter):
-        if verbose:
-            print(f"skel={skeleton}, k={k}, prob={min_prob}, "
-                  + f"it={it}: {mag_score} -> {new_mag_score}")
         mag = new_mag.copy()
         mag_tc = new_mag_tc
         mag_score = new_mag_score
@@ -50,6 +50,9 @@ def bccdgs(mag, sts, k, skeleton, min_prob, max_iter=1000, verbose=True):
         new_mag_tc = mag_to_ancestral(new_mag)
         new_mag_score = score(new_mag, new_mag_tc, **sts)
         it += 1
+        if verbose:
+            print(f"skel={skeleton}, k={k}, prob={min_prob}, "
+                  + f"it={it}: {mag_score} -> {new_mag_score}")
 
     return mag, it
 
@@ -82,8 +85,11 @@ def gen_new_mag(g, sts, k, skeleton):
     gs = gs[valids]
     gst = gst[valids]
 
-    scores = graphs_score(gs, gst, sts)
-    return gs[np.argmax(scores)]
+    if gs.size == 0:
+        return g
+    else:
+        scores = graphs_score(gs, gst, sts)
+        return gs[np.argmax(scores)]
 
 def graphs(g, size, edges, marks):
     if edges.shape[0] != marks.shape[0]:

@@ -78,24 +78,24 @@ def do_the_thing(nodes,
 
 def main():
 
-    for d in [2, 3, 4]:
-        gen_the_thing(
-            nodes=10,
-            degree=d,
-            max_latent_variables=2,
-        )
+    # for d in [2, 3, 4]:
+        # gen_the_thing(
+            # nodes=10,
+            # degree=d,
+            # max_latent_variables=2,
+        # )
 
-    gen_the_thing(
-        nodes=5,
-        degree=3,
-        max_latent_variables=1
-    )
+    # gen_the_thing(
+        # nodes=5,
+        # degree=3,
+        # max_latent_variables=1
+    # )
 
-    gen_the_thing(
-        nodes=15,
-        degree=3,
-        max_latent_variables=3
-    )
+    # gen_the_thing(
+        # nodes=15,
+        # degree=3,
+        # max_latent_variables=3
+    # )
 
     for s in [True, False]:
         for k in [1, 2]:
