@@ -1,5 +1,8 @@
-% Thesis Draft
-% Daan Spijkers s1011382
+---
+title: "Thesis"
+bibliography: bib/thesis.bib
+---
+
 # Thesis Draft
 
 ## Abstract
@@ -131,3 +134,4 @@ seconds, my part is only measured in miliseconds.
 ## Conclusions
 
 ## References
+test [@claassenBayesianApproachConstraint2012a]

@@ -150,3 +150,5 @@ cython_debug/
 data
 data_old
 data_new
+
+report/*.pdf
