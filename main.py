@@ -11,10 +11,11 @@ from bccdgs.run import (
     pag_score_df
 )
 
+
 def gen_the_thing(nodes,
                   degree,
                   max_latent_variables,
-                  location = Path("data"),
+                  location=Path("data"),
                   ):
 
     location = location / f"{nodes}_{degree}"
@@ -43,18 +44,18 @@ def gen_the_thing(nodes,
     df.to_pickle(location / "data_valid.pkl")
     mdf.to_pickle(location / "mag_valid.pkl")
 
+
 def do_the_thing(nodes,
                  degree,
                  k,
                  skeleton,
                  min_prob,
-                 location = Path("data"),
+                 location=Path("data"),
                  ):
 
     location = location / f"{nodes}_{degree}"
     if not location.exists():
         raise ValueError("data does not exist")
-
 
     mdf = pd.read_pickle(location / "mag_valid.pkl")
     df = pd.read_pickle(location / "data_valid.pkl")
@@ -78,47 +79,53 @@ def do_the_thing(nodes,
 
 def main():
 
-    # for d in [2, 3, 4]:
-        # gen_the_thing(
-            # nodes=10,
-            # degree=d,
-            # max_latent_variables=2,
-        # )
-
+    # for d in [2, 3]
     # gen_the_thing(
-        # nodes=5,
-        # degree=3,
-        # max_latent_variables=1
+    # nodes=10,
+    # degree=d,
+    # max_latent_variables=2,
     # )
 
-    # gen_the_thing(
-        # nodes=15,
-        # degree=3,
-        # max_latent_variables=3
-    # )
+    gen_the_thing(
+        nodes=10,
+        degree=2.5,
+        max_latent_variables=2,
+    )
+
+    gen_the_thing(
+        nodes=5,
+        degree=2.5,
+        max_latent_variables=1
+    )
+
+    gen_the_thing(
+        nodes=15,
+        degree=2.5,
+        max_latent_variables=3
+    )
 
     for s in [True, False]:
         for k in [1, 2]:
             do_the_thing(
                 nodes=10,
-                degree=3,
+                degree=2.5,
                 k=k,
                 skeleton=s,
                 min_prob=0.5
             )
 
-    for d in [2, 4]:
-        do_the_thing(
-            nodes=10,
-            degree=d,
-            k=1,
-            skeleton=False,
-            min_prob=0.5
-        )
+    # for d in [2, 3]:
+    #     do_the_thing(
+    #         nodes=10,
+    #         degree=d,
+    #         k=1,
+    #         skeleton=False,
+    #         min_prob=0.5
+    #     )
 
     do_the_thing(
         nodes=5,
-        degree=3,
+        degree=2.5,
         k=1,
         skeleton=False,
         min_prob=0.5
@@ -126,11 +133,12 @@ def main():
 
     do_the_thing(
         nodes=15,
-        degree=3,
+        degree=2.5,
         k=1,
         skeleton=False,
         min_prob=0.5
     )
+
 
 if __name__ == "__main__":
     main()
