@@ -9,18 +9,22 @@ from bccdgs.util import (
     remove_latent_variables,
     compare_pags, compare_causal_structure
 )
-from bccdgs.r import *
+from bccdgs.r import (
+    set_r_seed, gen_graph, dag_to_pag, run_bccd,
+    pag_to_mag, mag_to_pag
+)
 from bccdgs.score import score_dict
 
-def gen_df(nodes = 10,
-           degree = 3,
-           min_latent_variables = 1,
-           max_latent_variables = 2,
-           models = range(100),
-           samples = 2 ** np.arange(7, 18),
+
+def gen_df(nodes=10,
+           degree=3,
+           min_latent_variables=1,
+           max_latent_variables=2,
+           models=range(100),
+           samples=2 ** np.arange(7, 18),
            # models=[1],
            # samples=[4096],
-           seed = 5):
+           seed=5):
 
     random.seed(seed)
     set_r_seed(seed)
@@ -31,7 +35,7 @@ def gen_df(nodes = 10,
                 "model": model,
                 "nodes": nodes,
                 "samples": samples,
-                "degree" : degree,
+                "degree": degree,
                 "latent_variables": np.array(random.sample(
                     range(nodes),
                     random.choice(range(
@@ -54,6 +58,7 @@ def gen_df(nodes = 10,
     )
 
     return bccd_df(df)
+
 
 def bccd_df(df):
     df = (
@@ -89,10 +94,11 @@ def mag_df(df):
     )
     return df
 
+
 def bccdgs_df(df, k, skeleton, min_prob):
     df = df[df["magtype"] == "bccdmp"]
 
-    df =  (
+    df = (
         df.assign(
             k=k,
             skeleton=skeleton,
@@ -105,7 +111,7 @@ def bccdgs_df(df, k, skeleton, min_prob):
                     row["skeleton"],
                     row["min_prob"]
                 ),
-                axis = 1
+                axis=1
             ),
             mag=lambda frame: frame["bccdgs_and_iter"].apply(
                 lambda elem: elem[0]
@@ -119,6 +125,7 @@ def bccdgs_df(df, k, skeleton, min_prob):
     )
     return df
 
+
 def pag_df(df):
     df = (
         df.assign(
@@ -130,6 +137,7 @@ def pag_df(df):
 
     return df
 
+
 def pag_score_df(df):
     df = (
         df.assign(
@@ -140,7 +148,7 @@ def pag_score_df(df):
                 ),
                 axis=1
             ),
-            causal_acc = lambda frame: frame.agg(
+            causal_acc=lambda frame: frame.agg(
                 lambda row: compare_causal_structure(
                     row["pag"],
                     remove_latent_variables(
@@ -151,6 +159,8 @@ def pag_score_df(df):
                 axis=1
             )
         )
-        .drop(columns = [ "pag", "dag", "original_pag", "sts", "latent_variables"])
+        .drop(columns=[
+            "pag", "dag", "original_pag", "sts", "latent_variables"
+        ])
     )
     return df

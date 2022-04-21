@@ -12,11 +12,11 @@ from bccdgs.run import (
 )
 
 
-def gen_the_thing(nodes,
-                  degree,
-                  max_latent_variables,
-                  location=Path("data"),
-                  ):
+def bccdgs_generate(nodes,
+                    degree,
+                    max_latent_variables,
+                    location=Path("data"),
+                    ):
 
     location = location / f"{nodes}_{degree}"
     location.mkdir()
@@ -45,13 +45,13 @@ def gen_the_thing(nodes,
     mdf.to_pickle(location / "mag_valid.pkl")
 
 
-def do_the_thing(nodes,
-                 degree,
-                 k,
-                 skeleton,
-                 min_prob,
-                 location=Path("data"),
-                 ):
+def bccdgs_run(nodes,
+               degree,
+               k,
+               skeleton,
+               min_prob,
+               location=Path("data"),
+               ):
 
     location = location / f"{nodes}_{degree}"
     if not location.exists():
@@ -80,64 +80,73 @@ def do_the_thing(nodes,
 def main():
 
     # for d in [2, 3]
-    # gen_the_thing(
+    # bccdgs_generate(
     # nodes=10,
     # degree=d,
     # max_latent_variables=2,
     # )
 
-    gen_the_thing(
-        nodes=10,
-        degree=2.5,
-        max_latent_variables=2,
-    )
-
-    gen_the_thing(
-        nodes=5,
-        degree=2.5,
-        max_latent_variables=1
-    )
-
-    gen_the_thing(
-        nodes=15,
-        degree=2.5,
-        max_latent_variables=3
-    )
-
-    for s in [True, False]:
-        for k in [1, 2]:
-            do_the_thing(
-                nodes=10,
-                degree=2.5,
-                k=k,
-                skeleton=s,
-                min_prob=0.5
-            )
-
+    # bccdgs_generate(
+    #     nodes=10,
+    #     degree=2.5,
+    #     max_latent_variables=2,
+    # )
+    #
+    # bccdgs_generate(
+    #     nodes=5,
+    #     degree=2.5,
+    #     max_latent_variables=1
+    # )
+    #
+    # bccdgs_generate(
+    #     nodes=15,
+    #     degree=2.5,
+    #     max_latent_variables=3
+    # )
+    #
+    # for s in [True, False]:
+    #     for k in [1, 2]:
+    #         bccdgs_run(
+    #             nodes=10,
+    #             degree=2.5,
+    #             k=k,
+    #             skeleton=s,
+    #             min_prob=0.5
+    #         )
+    #
     # for d in [2, 3]:
-    #     do_the_thing(
+    #     bccdgs_run(
     #         nodes=10,
     #         degree=d,
     #         k=1,
     #         skeleton=False,
     #         min_prob=0.5
     #     )
-
-    do_the_thing(
-        nodes=5,
-        degree=2.5,
-        k=1,
-        skeleton=False,
-        min_prob=0.5
-    )
-
-    do_the_thing(
-        nodes=15,
-        degree=2.5,
-        k=1,
-        skeleton=False,
-        min_prob=0.5
-    )
+    #
+    # bccdgs_run(
+    #     nodes=5,
+    #     degree=2.5,
+    #     k=1,
+    #     skeleton=False,
+    #     min_prob=0.5
+    # )
+    #
+    # bccdgs_run(
+    #     nodes=15,
+    #     degree=2.5,
+    #     k=1,
+    #     skeleton=False,
+    #     min_prob=0.5
+    # )
+    #
+    for m in [0, 0.01, 0.1, 0.3, 0.5, 0.7, 0.9]:
+        bccdgs_run(
+            nodes=10,
+            degree=2.5,
+            k=1,
+            skeleton=False,
+            min_prob=m
+        )
 
 
 if __name__ == "__main__":

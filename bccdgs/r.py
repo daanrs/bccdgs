@@ -5,8 +5,10 @@ from rpy2.robjects.conversion import localconverter
 
 b = importr('bccdgsr')
 
+
 def set_r_seed(s):
     b.set_seed(s)
+
 
 def gen_graph(v, deg):
     prob = deg / (v - 1)
@@ -14,6 +16,7 @@ def gen_graph(v, deg):
     with localconverter(ro.default_converter + numpy2ri.converter):
         g = ro.conversion.rpy2py(g)
     return g
+
 
 def run_bccd(g, l, n):
 
@@ -49,6 +52,7 @@ def run_bccd(g, l, n):
 
     return bpag, sts
 
+
 def dag_to_pag(g, l):
     # r indices start at 1. TODO: copy?
     if l.size > 0:
@@ -63,6 +67,7 @@ def dag_to_pag(g, l):
         gp = ro.conversion.rpy2py(gp)
 
     return g_switch(gp)
+
 
 def pag_to_mag(g):
     g = g_switch(g)
@@ -79,6 +84,7 @@ def pag_to_mag(g):
     else:
         return g_switch(gm)
 
+
 def mag_to_pag(g):
     g = g_switch(g)
 
@@ -90,6 +96,7 @@ def mag_to_pag(g):
         gp = ro.conversion.rpy2py(gp)
 
     return g_switch(gp)
+
 
 def g_switch(g):
     """

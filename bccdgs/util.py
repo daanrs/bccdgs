@@ -1,8 +1,10 @@
 import numpy as np
 import numba
 
+
 def mag_to_ancestral(g):
     return dag_to_ancestral(to_directed(g))
+
 
 @numba.njit
 def to_directed(g):
@@ -20,6 +22,7 @@ def to_directed(g):
             if tails[i, j] and arrows_t[i, j]:
                 g[i, j] = 1
     return g
+
 
 @numba.njit
 def dag_to_ancestral(g):
@@ -44,6 +47,7 @@ def dag_to_ancestral(g):
 
     return g
 
+
 def remove_latent_variables(g, lv):
     """
     Remove latent variables from a g
@@ -51,6 +55,7 @@ def remove_latent_variables(g, lv):
     g = np.delete(g, lv, axis=0)
     g = np.delete(g, lv, axis=1)
     return g
+
 
 def dag_to_mag(dag, lv):
     """
@@ -91,6 +96,7 @@ def dag_to_mag(dag, lv):
     dag = remove_latent_variables(dag, lv)
     return dag
 
+
 def compare_pags(g1, g2):
     """
     Compare two different mags, returning how many edges are the same,
@@ -99,6 +105,7 @@ def compare_pags(g1, g2):
     total = ((g1 != 0) | (g2 != 0)).sum()
     same = ((g1 == g2) & (g1 != 0) & (g2 != 0)).sum()
     return same/total
+
 
 def compare_skeletons(g1, g2):
     """
@@ -109,6 +116,7 @@ def compare_skeletons(g1, g2):
     g1[g1 != 0] = 1
     g2[g2 != 0] = 1
     return compare_pags(g1, g2)
+
 
 def compare_causal_structure(pag, ancestral_dag):
     """

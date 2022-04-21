@@ -8,6 +8,7 @@ from numba import njit, prange
 
 import numpy as np
 
+
 def bccdgs(mag, sts, k, skeleton, min_prob, max_iter=1000, verbose=True):
     """
     Run greedy search on bccd results.
@@ -56,6 +57,7 @@ def bccdgs(mag, sts, k, skeleton, min_prob, max_iter=1000, verbose=True):
 
     return mag, it
 
+
 def gen_new_mag(g, sts, k, skeleton):
     """
     Generate the n best scoring mags with k edges changed.
@@ -91,6 +93,7 @@ def gen_new_mag(g, sts, k, skeleton):
         scores = graphs_score(gs, gst, sts)
         return gs[np.argmax(scores)]
 
+
 def graphs(g, size, edges, marks):
     if edges.shape[0] != marks.shape[0]:
         raise ValueError(
@@ -101,6 +104,7 @@ def graphs(g, size, edges, marks):
     b[edges[:, 0], edges[:, 1], edges[:, 2]] = marks
     return b.reshape(-1, g.shape[-2], g.shape[-1])
 
+
 @njit(parallel=True)
 # @njit
 def graphs_tc(gs):
@@ -109,20 +113,24 @@ def graphs_tc(gs):
         gst[i] = dag_to_ancestral(to_directed(gs[i]))
     return gst
 
+
 def graphs_score(gs, gst, sts):
     scores = np.empty(gs.shape[0], dtype=float)
     for i in range(scores.size):
         scores[i] = score(gs[i], gst[i], **sts)
     return scores
 
+
 def edges_from_shape(n):
     edges = choices(np.arange(n), 2)
     return add_edge_reverse(edges)
+
 
 def edges_from_skeleton(g):
     e = np.transpose(np.nonzero(g))
     e = e[e[:, 0] < e[:, 1]]
     return add_edge_reverse(e)
+
 
 def add_edge_reverse(x):
     return np.concatenate(
@@ -130,8 +138,9 @@ def add_edge_reverse(x):
             x[:, np.newaxis, :],
             x[:, np.newaxis, ::-1]
         ),
-        axis = 1
+        axis=1
     )
+
 
 def changes(edges, marks, k):
     """
@@ -153,6 +162,7 @@ def changes(edges, marks, k):
     marks = marks.reshape(-1)
     return size, edges, marks
 
+
 def choices(n, k):
     """
     All k choose n combinations.
@@ -171,10 +181,11 @@ def choices(n, k):
                         (n_k_1.shape[0], 1) + n[i].shape
                     )
                 ),
-                axis = 1
+                axis=1
             )
             for i in range(n.shape[0]-k+1)
         ])
+
 
 def self_product_power(x, k):
     x = x[:, np.newaxis, ...]
@@ -183,6 +194,7 @@ def self_product_power(x, k):
         xi = np.concatenate(product_align(xi, x), axis=1)
     return xi
 
+
 def broadcast_concatenate(x, y):
     # TODO: this function is cursed
     ys = np.array(y.shape)[::-1]
@@ -190,6 +202,7 @@ def broadcast_concatenate(x, y):
     ys = tuple(ys)
     x = np.broadcast_to(x, ys).T.reshape(ys[::-1])
     return np.concatenate((x, y), axis=-1)
+
 
 def product_align(x, y):
     """
