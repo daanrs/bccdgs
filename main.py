@@ -139,7 +139,7 @@ def main():
     #     min_prob=0.5
     # )
     #
-    for m in [0, 0.01, 0.1, 0.3, 0.5, 0.7, 0.9]:
+    for m in [0, 0.01, 0.1, 0.3, 0.7, 0.9]:
         bccdgs_run(
             nodes=10,
             degree=2.5,
