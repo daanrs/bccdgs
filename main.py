@@ -79,66 +79,60 @@ def bccdgs_run(nodes,
 
 def main():
 
-    # for d in [2, 3]
-    # bccdgs_generate(
-    # nodes=10,
-    # degree=d,
-    # max_latent_variables=2,
-    # )
+    for d in [2, 2.5, 3]:
+        bccdgs_generate(
+            nodes=10,
+            degree=d,
+            max_latent_variables=2,
+        )
 
-    # bccdgs_generate(
-    #     nodes=10,
-    #     degree=2.5,
-    #     max_latent_variables=2,
-    # )
-    #
-    # bccdgs_generate(
-    #     nodes=5,
-    #     degree=2.5,
-    #     max_latent_variables=1
-    # )
-    #
-    # bccdgs_generate(
-    #     nodes=15,
-    #     degree=2.5,
-    #     max_latent_variables=3
-    # )
-    #
-    # for s in [True, False]:
-    #     for k in [1, 2]:
-    #         bccdgs_run(
-    #             nodes=10,
-    #             degree=2.5,
-    #             k=k,
-    #             skeleton=s,
-    #             min_prob=0.5
-    #         )
-    #
-    # for d in [2, 3]:
-    #     bccdgs_run(
-    #         nodes=10,
-    #         degree=d,
-    #         k=1,
-    #         skeleton=False,
-    #         min_prob=0.5
-    #     )
-    #
-    # bccdgs_run(
-    #     nodes=5,
-    #     degree=2.5,
-    #     k=1,
-    #     skeleton=False,
-    #     min_prob=0.5
-    # )
-    #
-    # bccdgs_run(
-    #     nodes=15,
-    #     degree=2.5,
-    #     k=1,
-    #     skeleton=False,
-    #     min_prob=0.5
-    # )
-    #
+    bccdgs_generate(
+        nodes=5,
+        degree=2.5,
+        max_latent_variables=1
+    )
+
+    bccdgs_generate(
+        nodes=15,
+        degree=2.5,
+        max_latent_variables=3
+    )
+
+    for s in [True, False]:
+        for k in [1, 2]:
+            bccdgs_run(
+                nodes=10,
+                degree=2.5,
+                k=k,
+                skeleton=s,
+                min_prob=0.5
+            )
+
+    for d in [2, 3]:
+        bccdgs_run(
+            nodes=10,
+            degree=d,
+            k=1,
+            skeleton=False,
+            min_prob=0.5
+        )
+
+    bccdgs_run(
+        nodes=5,
+        degree=2.5,
+        k=1,
+        skeleton=False,
+        min_prob=0.5
+    )
+
+    bccdgs_run(
+        nodes=15,
+        degree=2.5,
+        k=1,
+        skeleton=False,
+        min_prob=0.5
+    )
+
     for m in [0, 0.01, 0.1, 0.3, 0.7, 0.9]:
         bccdgs_run(
             nodes=10,
