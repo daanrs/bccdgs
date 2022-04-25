@@ -1,6 +1,7 @@
 ---
 title: "Thesis"
 bibliography: bib/thesis.bib
+author: "Daan Spijkers"
 ---
 
 # Thesis Draft
@@ -24,9 +25,10 @@ insufficient data.
 
 That is why taking realistic data, and optimizing the result is a relevant
 problem. It is not always clear how an algorithm performs in these
-situations, even if it is complete. One such complete algorithm is BCCD,
-which uses a bayesian score to return a more robust and informative result
-than comparable procedures.
+situations, even if it is complete. One such complete algorithm is
+BCCD[@claassenBayesianApproachConstraint2012a], which uses a bayesian
+score to return a more robust and informative result than comparable
+procedures.
 
 ## Preliminaries
 
@@ -124,14 +126,15 @@ seconds, my part is only measured in miliseconds.
 
 ### Results
 
-![nodes pag](../data/results/nodes_pag_acc.pdf)
-![nodes causal](../data/results/nodes_causal_acc.pdf)
-![skel pag](../data/results/skel_pag_acc.pdf)
-![skel causal](../data/results/skel_causal_acc.pdf)
+![nodes pag](./lib/nodes_pag.pdf)
+![nodes causal](./lib/nodes_causal.pdf)
+![skel pag](./lib/skel_pag.pdf)
+![skel causal](./lib/skel_causal.pdf)
+![sparsity pag](./lib/sparsity_pag.pdf)
+![sparsity causal](./lib/sparsity_causal.pdf)
 
 ## Related Work
 
 ## Conclusions
 
 ## References
-test [@claassenBayesianApproachConstraint2012a]
