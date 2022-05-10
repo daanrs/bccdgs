@@ -3,10 +3,21 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs";
-    flake-utils.url = "github:numtide/flake-utils";
+
+    flake-utils = {
+      url = "github:numtide/flake-utils";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    tex2nix = {
+      url = "github:Mic92/tex2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
+  outputs = { self, nixpkgs, flake-utils, tex2nix }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
@@ -55,7 +66,8 @@
                 buildInputs = (old.buildInputs or [ ]) ++ (
                   with pkgs.rPackages; [
                     bccdgs_r
-                ]);
+                  ]
+                );
               }
             );
           };

@@ -13,8 +13,8 @@ statements?*
 
 ## Introduction
 Causal inference is taking a system of statistical independencies, and
-mining a system of causal relations. We then represent these causal
-relations in a causal graph.
+mining a system of causal relations. These causal relations we then
+represent in a causal graph.
 
 In an ideal situation, we have a statistical test that determines
 whether $x$ and $y$ are independent with 100\% accuracy. Given such a
@@ -30,6 +30,7 @@ BCCD[@claassenBayesianApproachConstraint2012a], which uses a bayesian
 score to return a more robust and informative result than comparable
 procedures.
 
+<!-- (Optional) necessary background -->
 ## Preliminaries
 
 ## Research
@@ -135,6 +136,6 @@ seconds, my part is only measured in miliseconds.
 
 ## Related Work
 
-## Conclusions
+## Conclusion
 
 ## References
