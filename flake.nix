@@ -99,11 +99,17 @@
 
         devShell = myAppEnv.env.overrideAttrs (oldAttrs: {
           buildInputs = with pkgs; [
+            # python
             poetry
             python39Packages.ipython
             python39Packages.rpy2
 
+            # r
             rEnv
+
+            # latex
+            tex2nix.packages.${system}.tex2nix
+            (pkgs.callPackage ./tex-env.nix { })
           ];
         });
       });
