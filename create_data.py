@@ -28,14 +28,8 @@ def bccdgs_generate(nodes,
     )
     df.to_pickle(location / "data_full.pkl")
 
-    selection_bias = df["pag"].apply(
-        lambda g: ((g == 1) & (g.T == 1)).any()
-    )
-    df = df[~selection_bias]
-    df.to_pickle(location / "data_no_selbias.pkl")
-
     mdf = mag_df(df)
-    mdf.to_pickle(location / "mag_no_selbias.pkl")
+    mdf.to_pickle(location / "mag_full.pkl")
 
     no_valid_mag = mdf["mag"].isna()
     mdf = mdf[~no_valid_mag]
