@@ -64,18 +64,14 @@ graphs.
 Simple pseudocode for our process is as follows:
 
 ~~~ python
-def run(pag):
+def bccdgs(pag):
   mag = pag_to_mag(pag)
   next_mag = next_mag(mag)
 
   while score(next_mag) > score(mag):
     mag = next_mag
-    next_mag = next_mag(mag)
-
+    next_mag = best_scoring_mag(adjacent_mags(mag))
   return mag_to_pag(mag)
-
-def next_mag(mag):
-  return best_scoring_mag(adjacent_mags(mag))
 ~~~
 
 Here we see that there are 4 main problems that we need to solve:
@@ -121,10 +117,6 @@ implementation. We have implemented 3 checks:
   2. Edge(x, y)
   3. Cofounder(x, y)
 
-#### Benchmarks
-While the bccd portion, as well as the fci portion are both measured in
-seconds, my part is only measured in miliseconds.
-
 ### Results
 
 ![nodes pag](./lib/nodes_pag.pdf)
@@ -133,6 +125,10 @@ seconds, my part is only measured in miliseconds.
 ![skel causal](./lib/skel_causal.pdf)
 ![sparsity pag](./lib/sparsity_pag.pdf)
 ![sparsity causal](./lib/sparsity_causal.pdf)
+
+#### Benchmarks
+While the bccd portion, as well as the fci portion are both measured in
+seconds, the greedy search is only several miliseconds.
 
 ## Related Work
 
