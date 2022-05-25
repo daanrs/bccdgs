@@ -107,7 +107,7 @@ def main():
             nodes=10,
             degree=d,
             k=1,
-            skeleton=False,
+            skeleton=True,
             min_prob=0.5
         )
 
@@ -115,7 +115,7 @@ def main():
         nodes=5,
         degree=2.5,
         k=1,
-        skeleton=False,
+        skeleton=True,
         min_prob=0.5
     )
 
@@ -123,16 +123,16 @@ def main():
         nodes=15,
         degree=2.5,
         k=1,
-        skeleton=False,
+        skeleton=True,
         min_prob=0.5
     )
 
-    for m in [0, 0.01, 0.1, 0.3, 0.7, 0.9]:
+    for m in [0, 0.1, 0.3, 0.7, 0.9]:
         bccdgs_run(
             nodes=10,
             degree=2.5,
             k=1,
-            skeleton=False,
+            skeleton=True,
             min_prob=m
         )
 
