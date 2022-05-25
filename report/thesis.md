@@ -7,28 +7,8 @@ author: "Daan Spijkers"
 # Thesis Draft
 
 ## Abstract
-*How much can we improve the accuracy of the resulting PAG from the BCCD
-algorithm using a greedy MAG search to optimise its probabilistic causal
-statements?*
 
 ## Introduction
-Causal inference is taking a system of statistical independencies, and
-mining a system of causal relations. These causal relations we then
-represent in a causal graph.
-
-In an ideal situation, we have a statistical test that determines
-whether $x$ and $y$ are independent with 100\% accuracy. Given such a
-perfect test, complete algorithms exist; they give the total causal
-information possible from that system. Unfortunately, in the real world
-100\% accuracy is not possible, and we often have to make do with
-insufficient data.
-
-That is why taking realistic data, and optimizing the result is a relevant
-problem. It is not always clear how an algorithm performs in these
-situations, even if it is complete. One such complete algorithm is
-BCCD[@claassenBayesianApproachConstraint2012a], which uses a bayesian
-score to return a more robust and informative result than comparable
-procedures.
 
 <!-- (Optional) necessary background -->
 ## Preliminaries
@@ -36,28 +16,6 @@ procedures.
 ## Research
 
 ### Problem details
-The topic of my thesis will be an initial attempt to gain some insight
-into possible gains, by adding an additional step after BCCD. We will do
-this by defining a metric on its derived probabilistic causal statements,
-and running a MAG search to optimise it.
-
-The specific research question is: how much can we improve the accuracy of
-the resulting PAG from the BCCD algorithm using a greedy MAG search
-to optimise its probabilistic causal statements?
-
-For more insight we can vary the causal models we generate, and how much
-data we produce. Since BCCD is complete, if we feed it infinite data, we
-should see its result converge to the original causal model.
-
-In our research, the main problem that we will need to solve is how
-exactly to define a metric on the causal statements. That is where the most
-involved effort will have to be.
-
-Although other parts of the problem are simpler, the efficiency of a MAG
-search could be a limitation. Generating adjacent graphs is an
-expensive procedure, so we might have to restrict ourselves to smaller
-graphs.
-
 ### Solution Details
 
 #### Pseudocode
@@ -135,3 +93,5 @@ seconds, the greedy search is only several miliseconds.
 ## Conclusion
 
 ## References
+
+

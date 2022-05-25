@@ -108,6 +108,7 @@
             rEnv
 
             # latex
+            biber
             tex2nix.packages.${system}.tex2nix
             (pkgs.callPackage ./tex-env.nix { })
           ];

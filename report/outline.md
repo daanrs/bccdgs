@@ -20,10 +20,11 @@
 
 ## Results
 * what causal score is
+* number of nodes
+* graph density
+
 * skeleton, k
 * min_prob
-* graph density
-* number of nodes
 * runtime
 
 ## Related Work
