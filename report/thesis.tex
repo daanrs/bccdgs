@@ -38,24 +38,25 @@
 \textsc{\Large Radboud University}\\[1cm]
 \hrule
 \vspace{0.4cm}
-\textbf{\huge Title Bachelor Thesis}\\[0.4cm]
+\textbf{\huge Bayesian Constraint-based Causal Discovery with Greedy
+  Search}\\[0.4cm]
 \hrule
 \vspace{2cm}
 \begin{minipage}[t]{0.45\textwidth}
 \begin{flushleft} \large
 \textit{Author:}\\
-Author name\\
-Student number
+Daan Spijkers\\
+s1011382
 \end{flushleft}
 \end{minipage}
 \begin{minipage}[t]{0.45\textwidth}
 \begin{flushright} \large
 \textit{First supervisor/assessor:}\\
-title, name\\
-\texttt{e-mail adress}\\[1.3cm]
-\textit{[Second supervisor:]}\\
-title, name\\
-\texttt{e-mail adress}\\[1.3cm]
+dr. Tom Claassen \\
+\texttt{tomc@cs.ru.nl}\\[1.3cm]
+% \textit{[Second supervisor:]}\\
+% title, name\\
+% \texttt{e-mail adress}\\[1.3cm]
 \textit{Second assessor:}\\
 title, name\\
 \texttt{e-mail adress}
@@ -91,12 +92,12 @@ statements?
 % Close the introduction with a paragraph in which the content of the next chapters
 % is briefly mentioned (one sentence per chapter).
 \chapter{Introduction}\label{introduction}
-Causal inference is taking a system of statistical independencies, and
-mining a system of causal relations. These causal relations we then
-represent in a causal graph.
+Causal inference consists of taking a system of statistical
+independencies, and mining a system of causal relations. These causal
+relations we then represent in a causal graph.
 
 In an ideal situation, we have a statistical test that determines
-whether $x$ and $y$ are independent with 100\% accuracy. Given such a
+whether $X$ and $Y$ are independent with 100\% accuracy. Given such a
 perfect test, complete algorithms exist; they give the total causal
 information possible from that system. Unfortunately, in the real world
 100\% accuracy is not possible, and we often have to make do with
@@ -105,9 +106,62 @@ insufficient data.
 That is why taking realistic data, and optimizing the result is a relevant
 problem. It is not always clear how an algorithm performs in these
 situations, even if it is complete. One such complete algorithm is
-BCCD\cite{claassenBayesianApproachConstraint2012a}, which uses a bayesian
+BCCD\cite{claassenBayesianApproachConstraint2012}, which uses a bayesian
 score to return a more robust and informative result than comparable
 procedures.
+
+BCCD uses a score-based method to mine a system of logical statements of
+the following forms:
+\begin{align*}
+  X \Rightarrow Y \lor X \Rightarrow Z \\
+  X \not \Rightarrow Y \land X \not \Rightarrow Z
+\end{align*}
+Where $X$, $Y$, $Z$ are three stochastic variables. These statements have
+a particular accuracy associated with them, representing how sure BCCD is
+about it. BCCD then uses causal inference to deduce statements that can be
+mapped into a PAG. However, since the data can contain inconsistencies, so
+can the statements. As of currently, the way inconsistencies are solved is
+by using statements in ascending accuracy, thereby never overwriting
+information we are more sure of.
+
+However, it is quite possible that one higher accuracy statement, say
+$p_1 = 0.9$ is contradicted by two slightly lower accuracy statements,
+say $p_2, p_3 = 0.85$. A simple estimation the likelihood of these
+situations is:
+\begin{align*}
+  p_1 * (1 - p_2) * (1 - p_3) &= 0.9 * (1 - 0.85) * (1 - 0.85) &= 0.02 \\
+  (1 - p_1) * p_2 * p_3 &= 0.1 * 0.85 * 0.85 &= 0.07
+\end{align*}
+It is clear then, that we would rather have the second situation, where
+the two lower accuracy statements are true, and that there is something to
+be gained here.
+
+An initial impulse is to improve the outcome by cleverly choosing which
+statements we do use to construct the graph, and which we do not. This
+ends up being a very difficult problem however, and instead we will work
+the other way around. That is, by starting at the graph.
+
+We take the initial output of BCCD, as well as its logical statements, and
+then iteratively search for better graphs until there is no further
+improvement possible. Although doing this greedily means this is likely to
+end up in a local optimum, the score must end up higher or equal to the
+initial BCCD result.
+
+By doing this we will be using global information to complement the local
+information, hopefully getting a better result. To easy scoring we will
+first convert the BCCD PAG to a MAG, and then work on that MAG. As we will
+see, this conversion also improves the result significantly, presumably
+because this incorporates global information that the original algorithm
+did not.
+
+To summarize, our contributions are as follows:
+\begin{enumerate}
+  \item An improved result on the BCCD framework by converting to and from
+    a MAG.
+
+  \item A greedy step which takes the MAG and BCCD statements, and returns
+    a higher scoring MAG.
+\end{enumerate}
 
 % This \emph{optional} chapter contains the stuff that your reader needs
 % to know in order to understand your work. Your ``audience" consists of
@@ -188,6 +242,10 @@ graphs.
 % as well as demonstrating that you have found a \emph{new} solution /
 % approach / method.
 \chapter{Related Work}\label{relatedwork}
+The most notable is
+FCI\cite{spirtesCausationPredictionSearch2000}, which is a complete
+\cite{zhangCompletenessOrientationRules2008} constrain based algorithm.
+
 
 % In this chapter you present all conclusions that can be drawn from the
 % preceding chapters. It should not introduce new experiments, theories,

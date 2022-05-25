@@ -3,6 +3,7 @@
 ## Abstract
 
 ## Introduction
+* what is a dag
 * issues arising from real world data
 * advantages and disadvantages of different methods
 * goal of bccd
