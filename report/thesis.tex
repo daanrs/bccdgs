@@ -1,18 +1,24 @@
 \documentclass[11pt,a4paper]{report}
 
+% part of template
 \usepackage{url}
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
 \usepackage[all]{xypic}
 \usepackage{amsmath}
 \usepackage{amsthm}
-\usepackage{todonotes}
 \usepackage{array}
+\usepackage{todonotes}
 \usepackage{listings}
 \usepackage[a4paper]{geometry}
 
+% my packages
+% \usepackage{minted}
 \usepackage{biblatex}
 \addbibresource{bib/thesis.bib}
+
+\def\ci{\perp\!\!\!\perp}
+\lstset{language=Python}
 
 \makeatletter %otherwise geometry resets everything
 \Gm@restore@org
@@ -111,18 +117,19 @@ score to return a more robust and informative result than comparable
 procedures.
 
 BCCD uses a score-based method to mine a system of logical statements of
-the following forms:
+the following form:
 \begin{align*}
   X \Rightarrow Y \lor X \Rightarrow Z \\
   X \not \Rightarrow Y \land X \not \Rightarrow Z
 \end{align*}
-Where $X$, $Y$, $Z$ are three stochastic variables. These statements have
-a particular accuracy associated with them, representing how sure BCCD is
-about it. BCCD then uses causal inference to deduce statements that can be
-mapped into a PAG. However, since the data can contain inconsistencies, so
-can the statements. As of currently, the way inconsistencies are solved is
-by using statements in ascending accuracy, thereby never overwriting
-information we are more sure of.
+That is: information about cause or non-cause between different stochastic
+variables. These statements have a particular accuracy associated with
+them, representing how sure BCCD is about it. BCCD then uses causal
+inference to deduce statements that can be mapped into a PAG. However,
+since the data can contain inconsistencies, so can the statements. As of
+currently, the way inconsistencies are solved is by using statements in
+ascending accuracy, thereby never overwriting information we are more sure
+of.
 
 However, it is quite possible that one higher accuracy statement, say
 $p_1 = 0.9$ is contradicted by two slightly lower accuracy statements,
@@ -169,6 +176,21 @@ To summarize, our contributions are as follows:
 % same core courses as you have, but not necessarily the same
 % specialization, minor, or free electives.
 \chapter{Preliminaries}\label{preliminaries}
+\section{Causal Discovery by Example}
+In this section we will adapt the example given in
+\cite{zhangCompletenessOrientationRules2008}, and give a quick
+introduction to DAGs and causal discovery in general.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.5\textwidth]{imgs/example1.png}
+  \caption{Example showing both latent cofounders and selection variables.}
+  \label{example}
+\end{figure}
+
+\section{Ancestral Graphs}
+
+\section{d-seperation}
 
 % This chapter, or series of chapters, delves into all technical details
 % that are required to \emph{prove} your scientific hypothesis. It should
@@ -178,28 +200,92 @@ To summarize, our contributions are as follows:
 % obtained. Please note that, in order to improve readability of your
 % thesis, you can put a part of this information also in one or more
 % appendices (see Appendix \ref{appendix}).
-\chapter{Problem Statement}\label{problem}
-The topic of my thesis will be an initial attempt to gain some insight
-into possible gains, by adding an additional step after BCCD. We will do
-this by defining a metric on its derived probabilistic causal statements,
-and running a MAG search to optimise it.
+\chapter{Algorithm Overview}\label{algorithm}
+Our procedure turns out to be very simple, and we shall see that the most
+challenging part is scoring the graph, which we get into in chapter
+\ref{problem}. For now we shall give a short overview of the algorithm,
+and then go into more detail on each of the problems. We give Python-esque
+pseudocode:
 
-The specific research question is: how much can we improve the accuracy of
-the resulting PAG from the BCCD algorithm using a greedy MAG search
-to optimise its probabilistic causal statements?
+\begin{lstlisting}
+def bccdgs(pag, statements):
+    mag = pag_to_mag(pag)
+    next_mag = next_mag(mag)
 
-For more insight we can vary the causal models we generate, and how much
-data we produce. Since BCCD is complete, if we feed it infinite data, we
-should see its result converge to the original causal model.
+    while score(next_mag, statements) > score(mag, statements):
+      mag = next_mag
+      next_mag = next_mag(next_mag)
 
-In our research, the main problem that we will need to solve is how
-exactly to define a metric on the causal statements. That is where the most
-involved effort will have to be.
+    return mag_to_pag(mag)
+\end{lstlisting}
+Where we use one helper function:
+\begin{lstlisting}
+def next_mag(mag, statements):
+    adjacent_mags = adjacent_mags(mag)
+    return best_scoring_mag(mags, statements)
+\end{lstlisting}
+We see that the first thing we do is convert the PAG into a MAG, since
+scoring a MAG is easier. Then, within the while loop we keep looking for
+the best adjacent mag with the next\_mag function. Within this function we
+generate adjacent mags, and then pick the best scoring one. In short,
+there are 4 main problems to solve:
+\begin{enumerate}
+  \item Transforming a PAG into a MAG.
 
-Although other parts of the problem are simpler, the efficiency of a MAG
-search could be a limitation. Generating adjacent graphs is an
-expensive procedure, so we might have to restrict ourselves to smaller
-graphs.
+  \item Transforming a MAG into a PAG.
+
+  \item Generating adjacent MAGs.
+
+  \item Scoring a MAG.
+\end{enumerate}
+We will cover 1-3 in this chapter, and scoring in chapter \ref{problem}.
+
+\section{PAG to MAG}
+The main difference is circle marks. The way to do this is by first
+orienting all semi-arcs into arcs, and then orienting all remaining edges
+into a DAG with no unshielded colliders. See Zhang paper.
+
+\section{MAG to PAG}
+Turning a MAG back into a PAG is slightly more involved. We use
+d-separation and the FCI orientation rules to do so.
+
+\section{Generating Adjacent MAGs}
+This is the simplest problem to solve. We consider adjacent graphs to be
+graphs which have one edge changed compared to the original. Given two
+vertices $u$ and $v$, there are four possibilities:
+\begin{align}
+  u \rightarrow v \\
+  u \leftarrow v \\
+  u \leftrightarrow v\\
+  (u, v) \notin E
+\end{align}
+Remembering that we ignored selection bias, and so there are no undirected
+edges. Our original graph has one of these four. All adjacent MAGS can
+then be easily generated by adding a graph which has one of the other 3
+possibilities.
+
+The real issue comes up when we want to check whether this MAG is also
+valid; that is whether it has any almost directed cycles.
+
+\chapter{Logical Statements}\label{problem}
+Although we build on the BCCD algorithm, it is quite complex, and details
+on how it works are outside of the scope of this thesis. Instead, we will
+focus on the specific output we use from it, which is the logical
+statements. For the interested reader, we refer to the original paper on
+how they are generated\cite{claassenBayesianApproachConstraint2012}.
+
+Given that we ignore selection bias, the specific different logical
+statements are as follows:
+\begin{align*}
+  X &\Rightarrow Y \\
+  X \Rightarrow Y &\lor X \Rightarrow Z \\
+  X \not \Rightarrow Y &\land X \not \Rightarrow Z \\
+  (X, Y) &\notin E \\
+  X &\ci Y
+\end{align*}
+We see that besides information about cause and non-cause, we now also
+have information about the non-existence of an edge, and unconditional
+independence of variables.
 
 % TODO(daan): figure out how to include pseudocode
 
@@ -237,6 +323,10 @@ graphs.
   \label{cutoff_causal}
 \end{figure}
 
+\section{Efficiency}
+While the bccd portion, as well as the fci portion are both measured in
+seconds, the greedy search is only several miliseconds.
+
 % In this chapter you demonstrate that you are sufficiently aware of the
 % state-of-art knowledge of the problem domain that you have investigated
 % as well as demonstrating that you have found a \emph{new} solution /
@@ -255,12 +345,12 @@ FCI\cite{spirtesCausationPredictionSearch2000}, which is a complete
 
 \printbibliography
 
-\appendix
 
 % Appendices are \emph{optional} chapters in which you cover additional
 % material that is required to support your hypothesis, experiments,
 % measurements, conclusions, etc. that would otherwise clutter the
 % presentation of your research.
-\chapter{Appendix}\label{appendix}
+% \appendix
+% \chapter{Appendix}\label{appendix}
 
 \end{document}

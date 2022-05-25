@@ -14,7 +14,14 @@
 * setup of experiment
 * d-seperation
 
-## Details
+## The algorithm
+* algorithm overview
+
+## conversions
+* pag to mag
+* mag to pag
+
+## scoring
 * details of bccd statements
 * generating adjacent graphs
 * scoring a graph
