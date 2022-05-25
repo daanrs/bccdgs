@@ -45,9 +45,10 @@ g = sns.relplot(
 )
 g.axes[0, 0].set_xscale("log", base=10)
 g.savefig(output / "nodes_causal.pdf")
+print("nodes done")
 
-# SPARSITY
-df_sparsity = df[
+# density
+df_density = df[
     (np.isin(df["degree"], np.array([2, 2.5, 3])))
     & (df["nodes"] == 10)
     & (~df["skeleton"])
@@ -56,18 +57,19 @@ df_sparsity = df[
 ]
 
 g = sns.relplot(
-    data=df_sparsity, x="samples", y="pag_acc", kind="line", hue="pagtype",
+    data=df_density, x="samples", y="pag_acc", kind="line", hue="pagtype",
     col="degree"
 )
 g.axes[0, 0].set_xscale("log", base=10)
-g.savefig(output / "sparsity_pag.pdf")
+g.savefig(output / "density_pag.pdf")
 
 g = sns.relplot(
-    data=df_sparsity, x="samples", y="causal_acc", kind="line", hue="pagtype",
+    data=df_density, x="samples", y="causal_acc", kind="line", hue="pagtype",
     col="degree"
 )
 g.axes[0, 0].set_xscale("log", base=10)
-g.savefig(output / "sparsity_causal.pdf")
+g.savefig(output / "density_causal.pdf")
+print("density done")
 
 # SKEL
 df_skel = df[
@@ -90,6 +92,7 @@ g = sns.relplot(
 )
 g.axes[0, 0].set_xscale("log", base=10)
 g.savefig(output / "skel_causal.pdf")
+print("skeleton done")
 
 # CUTOFF
 df_cutoff = df[
@@ -98,18 +101,27 @@ df_cutoff = df[
     & (df["pagtype"] == "bccdgs")
     & (~df["skeleton"])
     & (df["k"] <= 1)
+    & (
+        (df["min_prob"] == 0)
+        | (df["min_prob"] == 0.1)
+        | (df["min_prob"] == 0.3)
+        | (df["min_prob"] == 0.5)
+        | (df["min_prob"] == 0.7)
+        | (df["min_prob"] == 0.9)
+    )
 ]
 
 g = sns.relplot(
     data=df_cutoff, x="samples", y="pag_acc", kind="line", hue="min_prob",
-    col=(df_cutoff["min_prob"] < 0.5)
+    # col=(df_cutoff["min_prob"] < 0.5)
 )
 g.axes[0, 0].set_xscale("log", base=10)
 g.savefig(output / "cutoff_pag.pdf")
 
 g = sns.relplot(
     data=df_cutoff, x="samples", y="causal_acc", kind="line", hue="min_prob",
-    col=(df_cutoff["min_prob"] < 0.5)
+    # col=(df_cutoff["min_prob"] < 0.5)
 )
 g.axes[0, 0].set_xscale("log", base=10)
 g.savefig(output / "cutoff_causal.pdf")
+print("cutoff done")
