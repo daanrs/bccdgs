@@ -400,38 +400,70 @@ matrix. Besides that, the following packages were used:
   \item The rpy2 package to call R packages from Python.
 \end{itemize}
 
-\chapter{Results}\label{results}
+\chapter{Experiments}\label{results}
 
-\section{Graph size}
+\section{Setup}
+We use pcalg to generate random graphs. Unless otherwise noted, the
+expected node degree is 2.5, and each graph has 10 nodes. We generate 100
+random DAGs, and then from each graph we generate $2^7, \ldots, 2^{17}$
+samples, and run the algorithm on those samples.
+
+By bccd we mean the PAG output from bccd, bccmp is the PAG converted to a
+MAG, and then converted to a PAG again. bccdgs is bccdmp with the greedy
+search added.
+
+We will look at the performance of each algorithm for different graph
+size and different graph densities. We will also look at what the best
+parameters for bccdgs are.
+
+\section{Results}
+The first comparison is of the different algorithms on several graph
+sizes, shown in figure \ref{fig:nodes_causal}. While the 3 algorithms are
+roughly equivalent for graphs of 5 nodes, we do see significant
+differences in 10 and 15 nodes. It is immediately clear that both bccdmp
+and bccdgs outperform bccd by a significant margin.
 \begin{figure}
   \centering
   \includegraphics[width=\textwidth]{lib/nodes_causal.pdf}
   \caption{Graph size}
-  \label{nodes_causal}
+  \label{fig:nodes_causal}
 \end{figure}
 
-\section{Graph density}
+We can plot similar results for different density graphs. Although we
+might have guessed that bccdgs works better than bccdmp for more difficult
+problems, e.g. larger or denser graphs, it does not appear to directly be
+the case here. We see that for degree=3 bccdgs does not outperform bccdmp
+consistently, and in fact underperforms for lower amount of samples.
 \begin{figure}
   \centering
   \includegraphics[width=\textwidth]{lib/density_causal.pdf}
   \caption{Density}
-  \label{density_causal}
+  \label{fig:density_causal}
 \end{figure}
 
-\section{Skeleton}
+\section{Parameters}
+There are three main parameters we want to check, that is whether to keep
+the skeleton, what value to take for k, and which accuracy statements to
+include.
 \begin{figure}
   \centering
   \includegraphics[width=0.33\textwidth]{lib/skel_causal.pdf}
   \caption{Skeleton}
-  \label{skel_causal}
+  \label{fig:skel_causal}
 \end{figure}
 
-\section{Cutoff point}
+\begin{figure}
+  \centering
+  \includegraphics[width=0.33\textwidth]{lib/k_causal.pdf}
+  \caption{k}
+  \label{fig:k_causal}
+\end{figure}
+
 \begin{figure}
   \centering
   \includegraphics[width=0.33\textwidth]{lib/cutoff_causal.pdf}
   \caption{Cutoff}
-  \label{cutoff_causal}
+  \label{fig:cutoff_causal}
 \end{figure}
 
 \section{Runtime}\label{runtime}

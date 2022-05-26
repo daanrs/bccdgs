@@ -72,26 +72,63 @@ g.savefig(output / "density_causal.pdf")
 print("density done")
 
 # SKEL
-df_skel = df[
+df_skel_k = df[
     (df["nodes"] == 10)
     & (df["degree"] == 2.5)
     & (df["pagtype"] == "bccdgs")
     & ((df["min_prob"] == 0.5) | (df["min_prob"] == -1))
 ]
 
+df_skel = df_skel_k[df_skel_k["k"] == 1]
+df_k = df_skel_k[~df_skel_k["skeleton"]]
+
+g = sns.relplot(
+    data=df_k, x="samples", y="pag_acc", kind="line",
+    hue="k",
+    palette="tab10"
+)
+g.axes[0, 0].set_xscale("log", base=10)
+g.savefig(output / "k_pag.pdf")
+
+g = sns.relplot(
+    data=df_k, x="samples", y="causal_acc", kind="line",
+    hue="k",
+    palette="tab10"
+)
+g.axes[0, 0].set_xscale("log", base=10)
+g.savefig(output / "k_causal.pdf")
+
 g = sns.relplot(
     data=df_skel, x="samples", y="pag_acc", kind="line",
-    hue=df_skel[["k", "skeleton"]].apply(tuple, axis=1)
+    hue="skeleton",
+    palette="tab10",
 )
 g.axes[0, 0].set_xscale("log", base=10)
 g.savefig(output / "skel_pag.pdf")
 
 g = sns.relplot(
-    data=df_skel, x="samples", y="pag_acc", kind="line",
-    hue=df_skel[["k", "skeleton"]].apply(tuple, axis=1)
+    data=df_skel, x="samples", y="causal_acc", kind="line",
+    hue="skeleton",
+    palette="tab10",
 )
 g.axes[0, 0].set_xscale("log", base=10)
 g.savefig(output / "skel_causal.pdf")
+
+g = sns.relplot(
+    data=df_skel_k, x="samples", y="pag_acc", kind="line",
+    hue=df_skel_k[["k", "skeleton"]].apply(tuple, axis=1),
+    palette="tab10",
+)
+g.axes[0, 0].set_xscale("log", base=10)
+g.savefig(output / "skel_k_pag.pdf")
+
+g = sns.relplot(
+    data=df_skel_k, x="samples", y="causal_acc", kind="line",
+    hue=df_skel_k[["k", "skeleton"]].apply(tuple, axis=1),
+    palette="tab10",
+)
+g.axes[0, 0].set_xscale("log", base=10)
+g.savefig(output / "skel_k_causal.pdf")
 print("skeleton done")
 
 # CUTOFF
@@ -113,6 +150,7 @@ df_cutoff = df[
 
 g = sns.relplot(
     data=df_cutoff, x="samples", y="pag_acc", kind="line", hue="min_prob",
+    palette="tab10",
     # col=(df_cutoff["min_prob"] < 0.5)
 )
 g.axes[0, 0].set_xscale("log", base=10)
@@ -120,6 +158,7 @@ g.savefig(output / "cutoff_pag.pdf")
 
 g = sns.relplot(
     data=df_cutoff, x="samples", y="causal_acc", kind="line", hue="min_prob",
+    palette="tab10",
     # col=(df_cutoff["min_prob"] < 0.5)
 )
 g.axes[0, 0].set_xscale("log", base=10)
