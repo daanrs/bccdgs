@@ -15,9 +15,11 @@
 % my packages
 % \usepackage{minted}
 \usepackage{biblatex}
+\usepackage{amssymb}
 \addbibresource{bib/thesis.bib}
 
 \def\ci{\perp\!\!\!\perp}
+% \def\space{\!\!\!}
 \lstset{language=Python}
 
 \makeatletter %otherwise geometry resets everything
@@ -202,11 +204,12 @@ introduction to DAGs and causal discovery in general.
 % appendices (see Appendix \ref{appendix}).
 \chapter{Algorithm Overview}\label{algorithm}
 Our procedure turns out to be very simple, and we shall see that the most
-challenging part is scoring the graph, which we get into in chapter
-\ref{problem}. For now we shall give a short overview of the algorithm,
+challenging part is scoring the graph, which we get into in section
+\ref{checking}. For now we shall give a short overview of the algorithm,
 and then go into more detail on each of the problems. We give Python-esque
 pseudocode:
 
+% TODO(daan): improve pseudocode formatting
 \begin{lstlisting}
 def bccdgs(pag, statements):
     mag = pag_to_mag(pag)
@@ -241,15 +244,32 @@ there are 4 main problems to solve:
 We will cover 1-3 in this chapter, and scoring in chapter \ref{problem}.
 
 \section{PAG to MAG}
-The main difference is circle marks. The way to do this is by first
-orienting all semi-arcs into arcs, and then orienting all remaining edges
-into a DAG with no unshielded colliders. See Zhang paper.
+To turn a PAG into a MAG we have to change all circle marks into either
+tails or arrows. However, we must be careful that the MAG is a part of the
+equivalence class. A proven correct method is as follows:
+
+\begin{enumerate}
+  \item Turn all semi-arcs into arcs. That is, turn
+    $*\!\!\!\rightarrow$ into $\rightarrow$ and
+    $*\!-$ into $\leftarrow$.
+
+  \item Orient the remaining $*\!\!\!-\!\!\!*$ edges into a DAG with no new unshielded
+    colliders.
+\end{enumerate}
+It is clear that all circle edges are either arrows or tails. For the
+proof that this is a valid MAG from the correct equivalence class we refer
+to the original paper\cite{zhangCompletenessOrientationRules2008}.
 
 \section{MAG to PAG}
-Turning a MAG back into a PAG is slightly more involved. We use
-d-separation and the FCI orientation rules to do so.
+Turning a MAG back into a PAG is slightly more involved, as it is not
+clear which marks must turn into circles. We do not have an algorithm that
+works directly on a MAG, and instead we will use d-seperation to determine
+independencies. We then feed this into the FCI algorithm, and make use of
+its orientation rules. Since the rules are complete and sound, this will
+create a PAG of the correct equivalence class.
 
-\section{Generating Adjacent MAGs}
+\section{Adjacent MAGs}
+\subsection{Generating}
 This is the simplest problem to solve. We consider adjacent graphs to be
 graphs which have one edge changed compared to the original. Given two
 vertices $u$ and $v$, there are four possibilities:
@@ -267,12 +287,46 @@ possibilities.
 The real issue comes up when we want to check whether this MAG is also
 valid; that is whether it has any almost directed cycles.
 
-\chapter{Logical Statements}\label{problem}
+\subsection{Checking correctness}\label{transitive_closure}
+We want to check that \emph{for any directed path from $u$ to $v$, there
+does not exist an edge $u \leftarrow v$ or an edge $u \leftrightarrow v$.
+} To do this, we will check a graph of all directed paths, the transitive
+closure, and compare it to the original graph.
+
+Although an efficient algorithm of $O(|V||E|)$ exists
+\cite{purdomTransitiveClosureAlgorithm1970} and is implemented in the
+boost graph library \cite{siekBoostGraphLibrary2002}, using this library
+in Python is a bit of a hassle. Instead, we use a simple algorithm based
+on matrix multiplication. This has $O(|V|^4)$, but the implementation is
+optimized enough for our purposes, as we shall discuss in section
+\ref{runtime}.
+
+The definition of arbitrary matrix multiplication for $C = A \cdot B$ is:
+
+\begin{equation*}
+  c_{ij} = \sum ^n_{k=1} a_{ik}b_{kj}
+\end{equation*}
+
+Now for an adjacency matrix $A \in \mathbb{B}^{n \times n}$ the
+self-product $A \cdot A$ becomes:
+
+\begin{equation*}
+  a^2_{ij} = \sum ^n_{k=1} a_{ik}a_{kj}
+\end{equation*}
+
+So we see that $a^2_{ij} > 0$ iff there is some directed path from $i$ to
+$j$ of length 2. Now if we want the transitive closure we take $A^n$, as a
+directed path is of maximum length $n$.
+
+Now that we have the transitive closure we can easily check whether any
+directed paths exist by comparing $A^n$ to $A$.
+
+\section{Checking}\label{checking}
 Although we build on the BCCD algorithm, it is quite complex, and details
 on how it works are outside of the scope of this thesis. Instead, we will
-focus on the specific output we use from it, which is the logical
-statements. For the interested reader, we refer to the original paper on
-how they are generated\cite{claassenBayesianApproachConstraint2012}.
+focus on the output we use from it, which is the logical statements. For
+the interested reader, we refer to the original paper on how they are
+generated\cite{claassenBayesianApproachConstraint2012}.
 
 Given that we ignore selection bias, the specific different logical
 statements are as follows:
@@ -287,20 +341,77 @@ We see that besides information about cause and non-cause, we now also
 have information about the non-existence of an edge, and unconditional
 independence of variables.
 
-% TODO(daan): figure out how to include pseudocode
+Besides the graph $G$ we will also need its transitive closure $G_{tc}$ to
+check whether an arbitrary statement $s \in S$ is true. We use the
+algorithm discussed in section \ref{transitive_closure}. Given this
+transitive closure, checking (non-)cause and edge existence is incredibly
+easy. For $X \Rightarrow Y$ we check $(X, Y) \in E_{tc}$, and $X \not
+\Rightarrow Y$ similarly $(X, Y) \notin E_{tc}$. The only statement which
+requires some work is unconditional independence.
+
+% TODO(daan): have consistent notation for X -> .. -> Y
+There are 3 cases in which $X \not \ci Y$:
+\begin{enumerate}
+  \item $(X, Y) \in E_{tc}$ or $(Y, X) \in E_{tc}$
+
+  \item $X \leftrightarrow Y$
+
+  \item There exists a $Z$ such that $X \leftarrow \ldots \leftarrow Z
+    \rightarrow \ldots \rightarrow Y$
+\end{enumerate}
+These can all easily be checked with $G$ and $G_{tc}$.
+
+\section{Scoring}
+To create a concrete score from these statements we have to combine the
+accuracies in some way. To do this we assume that these statements are
+independent. This is patently untrue, but we need this assumption to
+combine them easily.
+
+% TODO(daan): fix notation of p_i
+Now we can describe the probability of a graph $G$ given statements $S =
+\{s_1, \ldots, s_l\}$ as follows:
+\begin{equation*}
+  \mathbb{P}(G | S) = \prod ^l_{i=1} p_i
+\end{equation*}
+Maximizing this is equivalent to maximizing the log-likelihood, which is
+what we will do:
+\begin{equation*}
+  L(G|S) = \sum_{i=1}^l \log (p_i)
+\end{equation*}
+To find the best graph from a collection we then take the graph which
+maximizes this score.
+
+\section{Implementation details}
+Now that all the pieces are there we give a quick overview of what we used
+to implement them. We primarily used the Python package Numpy
+\cite{harrisArrayProgrammingNumPy2020} to represent graphs as an adjacency
+matrix. Besides that, the following packages were used:
+\begin{itemize}
+  \item Pcalg\cite{kalischCausalInferenceUsing2012} for pag2mag and fci
+    functions. It is also used to generate random graphs, as we shall see
+    in chapter \ref{results}.
+
+  \item Scipy\cite{virtanenSciPyFundamentalAlgorithms2020} for the matrix
+    power used in \ref{transitive_closure}.
+
+  \item Seaborn\cite{waskomSeabornStatisticalData2021} and
+    Matplotlib\cite{hunterMatplotlib2DGraphics2007} for plotting results.
+
+  \item The rpy2 package to call R packages from Python.
+\end{itemize}
 
 \chapter{Results}\label{results}
 
-\section{Nodes}
+\section{Graph size}
 \begin{figure}
   \centering
   \includegraphics[width=\textwidth]{lib/nodes_causal.pdf}
-  \caption{Nodes}
+  \caption{Graph size}
   \label{nodes_causal}
 \end{figure}
 
 \section{Graph density}
-\begin{figure}[h]
+\begin{figure}
   \centering
   \includegraphics[width=\textwidth]{lib/density_causal.pdf}
   \caption{Density}
@@ -323,7 +434,7 @@ independence of variables.
   \label{cutoff_causal}
 \end{figure}
 
-\section{Efficiency}
+\section{Runtime}\label{runtime}
 While the bccd portion, as well as the fci portion are both measured in
 seconds, the greedy search is only several miliseconds.
 
