@@ -5,7 +5,7 @@ main:
 	pdflatex -shell-escape thesis.tex
 	biber thesis
 	pdflatex -shell-escape thesis.tex
-	rm *.log *.aux *.bbl *.bcf *.blg *.run.xml *.toc
+	rm *.log *.aux *.bbl *.bcf *.blg *.run.xml *.toc *.tdo
 
 prop:
 	pdflatex proposal.tex

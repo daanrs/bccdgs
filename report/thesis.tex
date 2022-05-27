@@ -75,6 +75,7 @@ title, name\\
 \end{center}
 \end{titlepage}
 
+\listoftodos
 % The abstract of your thesis is a brief description of the research hypothesis,
 % scientific context, motivation, and results.
 % The preferred size of an abstract is one paragraph or one page of text.
@@ -82,6 +83,7 @@ title, name\\
 How much can we improve the accuracy of the resulting PAG from the BCCD
 algorithm using a greedy MAG search to optimise its probabilistic causal
 statements?
+\todo{abstract is not written properly}
 \end{abstract}
 
 \tableofcontents
@@ -178,19 +180,66 @@ To summarize, our contributions are as follows:
 % same core courses as you have, but not necessarily the same
 % specialization, minor, or free electives.
 \chapter{Preliminaries}\label{preliminaries}
-\section{Causal Discovery by Example}
-In this section we will adapt the example given in
-\cite{zhangCompletenessOrientationRules2008}, and give a quick
-introduction to DAGs and causal discovery in general.
+\section{Causal Discovery by Example}\label{sec:example}
+In this section we will give a quick introduction to causal discovery. To
+do so, similar to \cite{zhangCompletenessOrientationRules2008}, we use the
+example from \cite{richardsonChainGraphsSymmetric1998}, which is
+attributed to Chris Meek:
+
+\begin{quote}
+  The graph (figure \ref{fig:example}) represents a randomized trial of an
+  innefective drug with unpleasant side-effects. Patients are randomly
+  assigned to the treatment or control group (A). Those in the treatment
+  group suffer unpleasant side-effects (Ef), the severity of which is
+  influenced by the patient's general level of health (H), with sicker
+  patients suffering worse side-effects. Those patients who suffer
+  sufficiently severe side-effects are likely to drop out of the study.
+  The selection variable (Sel) records whether or not a patient remains in
+  the study, thus for all those remaining in the study Sel=StayIn. Since
+  unhealthy patients who are taking the drug are more likely to drop out,
+  those patients in the treatment group who remain in the study tend to be
+  healthier than those in the control group. Finally health status (H)
+  influences how rapidly the person recovers (R).
+\end{quote}
 
 \begin{figure}
   \centering
   \includegraphics[width=0.5\textwidth]{imgs/example1.png}
   \caption{Example showing both latent cofounders and selection variables.}
-  \label{example}
+  \label{fig:example}
 \end{figure}
 
-\section{Ancestral Graphs}
+In this study we would like to describe the relation between recovery (R),
+treatment (A), and side-effects (Ef). But as we see, it is also influenced
+by the health (H) of the patient, and whether they semain in the study
+(Sel). In this case health is a \emph{latent cofounder} and Sel is a
+\emph{selection variable}. In a normal DAG there is no way to represent
+these without knowing their existence, so we will introduce a mixed graph
+called an Ancestral Graph. We introduce undirected and bidirected edges,
+and change the meaning of marks in the following way:
+
+\begin{itemize}
+  \item $A \rightarrow B$ means A causes B or some selection variable, and B
+    does not cause A or a selection variable.
+
+  \item $A \leftrightarrow B$ means A does not cause B or a selection
+    variable, and B does not cause A or a selection variable.
+
+  \item $A - B$ means A causes B or a selection variable, and B causes A
+    or a selection variable. As we shall see in
+    \ref{sec:ancestral_graphs}, this must mean that both A and B cause
+    some selection variables.
+\end{itemize}
+
+In the case that there is no selection bias, we have no undirected edges,
+and $A \rightarrow B$ means A causes B. We then are only left with $A
+\leftrightarrow B$, meaning a latent cofounder.
+\todo{explain somewhere that an edge means relation, which is why latent
+cofounder}
+
+\section{Ancestral Graphs}\label{sec:ancestral_graphs}
+Although we now have introduced the meaning of ancestral graphs, we have
+not yet defined what it means to have valid MAGs or PAGs.
 
 \section{d-seperation}
 
@@ -241,7 +290,7 @@ there are 4 main problems to solve:
 
   \item Scoring a MAG.
 \end{enumerate}
-We will cover 1-3 in this chapter, and scoring in chapter \ref{problem}.
+We will handle these problems in the following sections.
 
 \section{PAG to MAG}
 To turn a PAG into a MAG we have to change all circle marks into either
@@ -349,7 +398,7 @@ easy. For $X \Rightarrow Y$ we check $(X, Y) \in E_{tc}$, and $X \not
 \Rightarrow Y$ similarly $(X, Y) \notin E_{tc}$. The only statement which
 requires some work is unconditional independence.
 
-% TODO(daan): have consistent notation for X -> .. -> Y
+\todo{change to a consistent notation for directed path}
 There are 3 cases in which $X \not \ci Y$:
 \begin{enumerate}
   \item $(X, Y) \in E_{tc}$ or $(Y, X) \in E_{tc}$
@@ -361,23 +410,27 @@ There are 3 cases in which $X \not \ci Y$:
 \end{enumerate}
 These can all easily be checked with $G$ and $G_{tc}$.
 
-\section{Scoring}
+\section{Scoring}\label{sec:scoring}
 To create a concrete score from these statements we have to combine the
 accuracies in some way. To do this we assume that these statements are
 independent. This is patently untrue, but we need this assumption to
 combine them easily.
 
-% TODO(daan): fix notation of p_i
 Now we can describe the probability of a graph $G$ given statements $S =
 \{s_1, \ldots, s_l\}$ as follows:
+\todo{fix notation of p i}
+
 \begin{equation*}
   \mathbb{P}(G | S) = \prod ^l_{i=1} p_i
 \end{equation*}
+
 Maximizing this is equivalent to maximizing the log-likelihood, which is
 what we will do:
+
 \begin{equation*}
   L(G|S) = \sum_{i=1}^l \log (p_i)
 \end{equation*}
+
 To find the best graph from a collection we then take the graph which
 maximizes this score.
 
@@ -387,6 +440,8 @@ to implement them. We primarily used the Python package Numpy
 \cite{harrisArrayProgrammingNumPy2020} to represent graphs as an adjacency
 matrix. Besides that, the following packages were used:
 \begin{itemize}
+  \item RUcausal \todo{add rucausal link} for the BCCD implementation.
+
   \item Pcalg\cite{kalischCausalInferenceUsing2012} for pag2mag and fci
     functions. It is also used to generate random graphs, as we shall see
     in chapter \ref{results}.
@@ -416,7 +471,10 @@ We will look at the performance of each algorithm for different graph
 size and different graph densities. We will also look at what the best
 parameters for bccdgs are.
 
-\section{Results}
+\section{Algorithm results}
+
+\todo{All plots need to be finalized with proper captions, etc}
+\subsection{Graph size}
 The first comparison is of the different algorithms on several graph
 sizes, shown in figure \ref{fig:nodes_causal}. While the 3 algorithms are
 roughly equivalent for graphs of 5 nodes, we do see significant
@@ -424,11 +482,13 @@ differences in 10 and 15 nodes. It is immediately clear that both bccdmp
 and bccdgs outperform bccd by a significant margin.
 \begin{figure}
   \centering
+  \includegraphics[width=\textwidth]{lib/nodes_pag.pdf}
   \includegraphics[width=\textwidth]{lib/nodes_causal.pdf}
   \caption{Graph size}
   \label{fig:nodes_causal}
 \end{figure}
 
+\subsection{Graph density}
 We can plot similar results for different density graphs. Although we
 might have guessed that bccdgs works better than bccdmp for more difficult
 problems, e.g. larger or denser graphs, it does not appear to directly be
@@ -436,6 +496,7 @@ the case here. We see that for degree=3 bccdgs does not outperform bccdmp
 consistently, and in fact underperforms for lower amount of samples.
 \begin{figure}
   \centering
+  \includegraphics[width=\textwidth]{lib/density_pag.pdf}
   \includegraphics[width=\textwidth]{lib/density_causal.pdf}
   \caption{Density}
   \label{fig:density_causal}
@@ -445,30 +506,100 @@ consistently, and in fact underperforms for lower amount of samples.
 There are three main parameters we want to check, that is whether to keep
 the skeleton, what value to take for k, and which accuracy statements to
 include.
+
+\subsection{Skeleton}
+The skeleton concerns how we generate new graphs. This is similar to what
+BCCD does, which is keep the skeleton from the constraint-based method,
+and map the orientation gathered by the statements on top of it. As we see
+in figure \ref{fig:skel_causal}, keeping the skeleton the same gives a
+better result.
 \begin{figure}
   \centering
+  \includegraphics[width=0.33\textwidth]{lib/skel_pag.pdf}
   \includegraphics[width=0.33\textwidth]{lib/skel_causal.pdf}
   \caption{Skeleton}
   \label{fig:skel_causal}
 \end{figure}
 
+\subsection{k}
+Besides generating all graphs with one edge different, we can also choose
+to change 2 edges. Although we would expect this to give a better result,
+the result actually ends up worse, as shown in figure \ref{fig:k_causal}.
+We are not sure what caused this.
 \begin{figure}
   \centering
+  \includegraphics[width=0.33\textwidth]{lib/k_pag.pdf}
   \includegraphics[width=0.33\textwidth]{lib/k_causal.pdf}
   \caption{k}
   \label{fig:k_causal}
 \end{figure}
 
+\subsection{Cutoff}
+Probably the most interesting paramater is the cutoff point for what
+probability statements to include. Although we have chosen $p=0.5$ so far,
+we can imagine that \emph{not} having low probability statements would
+also improve our result. However, this turns out not to be true, and in
+\ref{fig:cutoff_causal} we see that including low probability statements
+significantly reduces the performance. Whether we take 0.5, 0.7, or 0.9
+does not seem to matter too much.
 \begin{figure}
   \centering
+  \includegraphics[width=0.33\textwidth]{lib/cutoff_pag.pdf}
   \includegraphics[width=0.33\textwidth]{lib/cutoff_causal.pdf}
   \caption{Cutoff}
   \label{fig:cutoff_causal}
 \end{figure}
 
+\subsection{MAG score}
+We can also plot the score (figure \ref{fig:mag_score} which we defined in
+section \ref{sec:scoring} for different MAGs, and we can draw some
+conclusions from it. Recall that for positive information, so cutoff
+larger or equal to 0.5, the score is represents how many statements are
+false, and is equal to 0 if all statements are true.
+
+The original MAG is the ground truth DAG converted to a MAG, and so is our
+baseline. The BCCD MAG is the BCCD output converted to a MAG, and BCCDGS
+MAG is the BCCD output with greedy search applied to it. \todo{The legend
+and labels of the MAG plots need to be updated}
+
+There are two main takeaways from the MAG graph:
+\begin{enumerate}
+  \item For easier graphs, e.g. with lower density or fewer nodes, BCCDGS
+    is often close to 0. From this we can conclude that even if it is in a
+    local optimum, that is already quite close to the global one.
+    For harder graphs on the other hand, we see that there is still a big
+    difference between BCCDGS score, and a score of 0.
+
+  \item The ground truth denoted by original MAG is further from 0 than
+    both the BCCD and BCCDGS MAGs. This means that by optimizing the score
+    we are not necesserily getting closer to the ground truth. This casts
+    some doubt on our current scoring method, as we obviously want to get
+    closer to the ground truth. However, it is not clear whether we can
+    find a scoring method where we are always getting closer to the ground
+    truth, as we are optimizing for the data generated from it, which
+    might be inconsistent.
+
+\end{enumerate}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{lib/mag_score_nodes.pdf}
+  % \includegraphics[width=\textwidth]{lib/mag_score_prob.pdf}
+  \includegraphics[width=\textwidth]{lib/mag_score_density.pdf}
+  \caption{MAG score}
+  \label{fig:mag_score}
+\end{figure}
+
 \section{Runtime}\label{runtime}
-While the bccd portion, as well as the fci portion are both measured in
-seconds, the greedy search is only several miliseconds.
+Although ideally we would have a detailed analysis of runtime, this was
+both not a priority, and not a necessity. The reason is that it was
+immediately clear how our algorithm compared to normal BCCD. Running
+normal BCCD for a graph of 10 nodes takes approximately 5 seconds, and
+BCCDGS takes approximately 15. However, the biggest difference by far is
+turning a MAG into a PAG, which is itself about 9 seconds. Turning the PAG
+into a MAG is about 1 second, while the actual process of greedy search is
+measured in several miliseconds. It is clear that any improvements in
+runtime must come from the format conversions.
 
 % In this chapter you demonstrate that you are sufficiently aware of the
 % state-of-art knowledge of the problem domain that you have investigated
@@ -485,6 +616,26 @@ FCI\cite{spirtesCausationPredictionSearch2000}, which is a complete
 % investigations, etc.: these should have been written down earlier in the
 % thesis. Therefore, conclusions can be brief and to the point.
 \chapter{Conclusions}\label{conclusions}
+We have presented BCCD with an extra greedy step, aptly named BCCDGS. We
+showed that the intermediate product BCCDMP and BCCDGS both outperform
+BCCD significantly, with BCCDMP and BCCDGS being closer in performance.
+
+We saw that the skeleton is best kept, and that counterintuitively both
+higher $k$ and lower cutoff are worse.
+
+\paragraph{Further work.}
+Many questions are still left open, perhaps the largest of which is why
+BCCDMP works so well. A next step in using the statements would be to
+expand on greedy search with a metaheuristic such as tabu search, but
+since a higher $k$ did not improve the score it is unclear whether that
+would.
+
+Certainly it is also worth seeing if there is a better way to incorporate
+lower probability statements.
+
+One other adjustment that could be made is running the greedy step with
+several different MAG inputs, as we can turn a PAG into many different
+MAGs of the equivalence class.
 
 \printbibliography
 
