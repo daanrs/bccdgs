@@ -18,6 +18,9 @@
 \usepackage{amssymb}
 \addbibresource{bib/thesis.bib}
 
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}[section]
+
 \def\ci{\perp\!\!\!\perp}
 % \def\space{\!\!\!}
 \lstset{language=Python}
@@ -181,6 +184,9 @@ To summarize, our contributions are as follows:
 % specialization, minor, or free electives.
 \chapter{Preliminaries}\label{preliminaries}
 \section{Causal Discovery by Example}\label{sec:example}
+
+% TODO(daan): explain what a DAG is, then we move on to the example
+
 In this section we will give a quick introduction to causal discovery. To
 do so, similar to \cite{zhangCompletenessOrientationRules2008}, we use the
 example from \cite{richardsonChainGraphsSymmetric1998}, which is
@@ -237,11 +243,41 @@ and $A \rightarrow B$ means A causes B. We then are only left with $A
 \todo{explain somewhere that an edge means relation, which is why latent
 cofounder}
 
+\section{d-seperation}
+Although we have introduced what causal graphs are, we have not yet shown
+the relation between a graph and statistical independencies. Given that
+that is what (constraint-based) discovery is about, it would be prudent to
+at least define it.
+
+In a causal graph, there is no edge $A \rightarrow B$ if $A$ and $B$ are
+d-seperated.
+
+% TODO(daan): add description of d-seperation
+\begin{defn}
+  X is conditionally independent of Y given a collection of variables Z,
+  denoted $X \ci Y | Z$ iff there is no unblocked path between X and Y in
+  G conditional on the nodes in Z.
+\end{defn}
+
+\begin{defn}
+  Causal Markov Condition states that each variable is indipendent of its
+  non-descendants, given its parents.
+\end{defn}
+
+\begin{defn}
+  Causal Faithfulness Conditional states that there are no independencies
+  between variables that are not entailed by the causal markov condition.
+\end{defn}
+
+
 \section{Ancestral Graphs}\label{sec:ancestral_graphs}
 Although we now have introduced the meaning of ancestral graphs, we have
 not yet defined what it means to have valid MAGs or PAGs.
 
-\section{d-seperation}
+MAG is a maximal ancestral graph, with no almost directed cycles.
+% TODO(daan): fix description of MAG and PAG
+
+PAG is the equivalence class of a MAG.
 
 % This chapter, or series of chapters, delves into all technical details
 % that are required to \emph{prove} your scientific hypothesis. It should
@@ -606,10 +642,21 @@ runtime must come from the format conversions.
 % as well as demonstrating that you have found a \emph{new} solution /
 % approach / method.
 \chapter{Related Work}\label{relatedwork}
-The most notable is
+% TODO(daan): expand related work
+Generally we differentiate between constraint-based methods, score-based
+methods, and hybrid methods, such as BCCD.
+
+Out of constraint based methods the most notable one is
 FCI\cite{spirtesCausationPredictionSearch2000}, which is a complete
 \cite{zhangCompletenessOrientationRules2008} constrain based algorithm.
 
+Score based methods function by relying on minimality or something, but
+usually they can't handle latent cofounders or selection bias.
+
+Several other hybrids exist such as greedy search with restarts or
+something.
+
+% TODO(daan): look at the other greedy search method
 
 % In this chapter you present all conclusions that can be drawn from the
 % preceding chapters. It should not introduce new experiments, theories,
@@ -637,6 +684,7 @@ One other adjustment that could be made is running the greedy step with
 several different MAG inputs, as we can turn a PAG into many different
 MAGs of the equivalence class.
 
+% TODO(daan): add more references
 \printbibliography
 
 
