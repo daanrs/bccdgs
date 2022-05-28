@@ -11,26 +11,22 @@
 
 ## Preliminaries
 * DAG representation of causal relations
-* setup of experiment
 * d-seperation
+* ancestral graphs
 
 ## The algorithm
 * algorithm overview
-
-## conversions
 * pag to mag
 * mag to pag
-
-## scoring
-* details of bccd statements
 * generating adjacent graphs
+* generating transitive closure
+* details of bccd statements
 * scoring a graph
 
 ## Results
 * what causal score is
 * number of nodes
 * graph density
-
 * skeleton, k
 * min_prob
 * runtime

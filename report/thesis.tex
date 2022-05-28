@@ -183,12 +183,45 @@ To summarize, our contributions are as follows:
 % same core courses as you have, but not necessarily the same
 % specialization, minor, or free electives.
 \chapter{Preliminaries}\label{preliminaries}
-\section{Causal Discovery by Example}\label{sec:example}
 
+
+
+\section{Causal Discovery}\label{sec:causal_discovery}
+Although we have introduced what causal graphs are, we have not yet shown
+the relation between a graph and statistical independencies. However, it
+would be prudent to at least define it.
+
+We generally rely on two assumptions:
+
+\begin{defn}
+  Causal Markov Condition states that each variable is independent of its
+  non-descendants, given its parents.
+\end{defn}
+
+\begin{defn}
+  Causal Faithfulness Conditional states that there are no independencies
+  between variables that are not entailed by the causal markov condition.
+\end{defn}
+
+These two assumptions allow us to relate a causal graph to its
+independencies, up to its markov equivalence class.
+
+In a causal graph, there is no edge $A \rightarrow B$ if $A$ and $B$ are
+d-seperated.
+
+% TODO(daan): add description of d-seperation
+\begin{defn}
+  X is conditionally independent of Y given a collection of variables Z,
+  denoted $X \ci Y | Z$ iff there is no unblocked path between X and Y in
+  G conditional on the nodes in Z.
+\end{defn}
+
+
+
+\section{Ancestral Graphs}
 % TODO(daan): explain what a DAG is, then we move on to the example
-
-In this section we will give a quick introduction to causal discovery. To
-do so, similar to \cite{zhangCompletenessOrientationRules2008}, we use the
+In this section we will give a quick introduction to ancestral graphs.  To
+do so, similar to \cite{zhangCompletenessOrientationRules2008}, we use an
 example from \cite{richardsonChainGraphsSymmetric1998}, which is
 attributed to Chris Meek:
 
@@ -243,39 +276,11 @@ and $A \rightarrow B$ means A causes B. We then are only left with $A
 \todo{explain somewhere that an edge means relation, which is why latent
 cofounder}
 
-\section{d-seperation}
-Although we have introduced what causal graphs are, we have not yet shown
-the relation between a graph and statistical independencies. Given that
-that is what (constraint-based) discovery is about, it would be prudent to
-at least define it.
-
-In a causal graph, there is no edge $A \rightarrow B$ if $A$ and $B$ are
-d-seperated.
-
-% TODO(daan): add description of d-seperation
-\begin{defn}
-  X is conditionally independent of Y given a collection of variables Z,
-  denoted $X \ci Y | Z$ iff there is no unblocked path between X and Y in
-  G conditional on the nodes in Z.
-\end{defn}
-
-\begin{defn}
-  Causal Markov Condition states that each variable is indipendent of its
-  non-descendants, given its parents.
-\end{defn}
-
-\begin{defn}
-  Causal Faithfulness Conditional states that there are no independencies
-  between variables that are not entailed by the causal markov condition.
-\end{defn}
-
-
-\section{Ancestral Graphs}\label{sec:ancestral_graphs}
 Although we now have introduced the meaning of ancestral graphs, we have
 not yet defined what it means to have valid MAGs or PAGs.
 
-MAG is a maximal ancestral graph, with no almost directed cycles.
 % TODO(daan): fix description of MAG and PAG
+MAG is a maximal ancestral graph, with no almost directed cycles.
 
 PAG is the equivalence class of a MAG.
 
@@ -469,12 +474,14 @@ what we will do:
 
 To find the best graph from a collection we then take the graph which
 maximizes this score.
+% TODO(daan): add score which is 0 if all is correct
 
 \section{Implementation details}
 Now that all the pieces are there we give a quick overview of what we used
 to implement them. We primarily used the Python package Numpy
-\cite{harrisArrayProgrammingNumPy2020} to represent graphs as an adjacency
-matrix. Besides that, the following packages were used:
+\cite{harrisArrayProgrammingNumPy2020} to represent and manipulate graphs
+as an adjacency matrix. Besides Numpy, the following packages were used:
+
 \begin{itemize}
   \item RUcausal \todo{add rucausal link} for the BCCD implementation.
 
@@ -482,13 +489,10 @@ matrix. Besides that, the following packages were used:
     functions. It is also used to generate random graphs, as we shall see
     in chapter \ref{results}.
 
-  \item Scipy\cite{virtanenSciPyFundamentalAlgorithms2020} for the matrix
-    power used in \ref{transitive_closure}.
-
   \item Seaborn\cite{waskomSeabornStatisticalData2021} and
     Matplotlib\cite{hunterMatplotlib2DGraphics2007} for plotting results.
 
-  \item The rpy2 package to call R packages from Python.
+  \item rpy2 to call R functions from Python.
 \end{itemize}
 
 \chapter{Experiments}\label{results}
@@ -506,6 +510,9 @@ search added.
 We will look at the performance of each algorithm for different graph
 size and different graph densities. We will also look at what the best
 parameters for bccdgs are.
+
+\section{Metrics}
+% TODO(daan): add information about PAG accuracy and causal accuracy
 
 \section{Algorithm results}
 
