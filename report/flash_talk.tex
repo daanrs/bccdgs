@@ -1,0 +1,35 @@
+\documentclass{beamer}
+
+\usepackage{beamer}
+\usepackage{graphicx}
+\usecolortheme{beaver}
+
+\mode<presentation>
+
+\title{Bayesian Constraint-based Causal Discovery with Greedy Search}
+
+\author{Daan Spijkers s1011832 \\ Supervisor: Tom Claassen}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}{Research Question}
+  \emph{How much can we improve the accuracy of
+  the resulting PAG from the BCCD algorithm using a greedy MAG search
+  to optimise its probabilistic causal statements?}
+\end{frame}
+
+\begin{frame}{Results}
+  \includegraphics[width=\textwidth]{lib/nodes_causal.pdf}
+
+  \begin{itemize}
+    \item Intermediate result bccdmp is already much better
+
+    \item For larger/denser graphs, bccdgs is slightly better still.
+  \end{itemize}
+\end{frame}
+
+\end{document}

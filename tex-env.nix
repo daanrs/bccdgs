@@ -2,6 +2,7 @@
 { texlive, extraTexPackages ? {} }:
 (texlive.combine ({
     inherit (texlive) scheme-small;
+    "translator" = texlive."translator";
     "fp" = texlive."fp";
     "xkeyval" = texlive."xkeyval";
     "kvsetkeys" = texlive."kvsetkeys";
@@ -16,9 +17,10 @@
     "hyperref" = texlive."hyperref";
     "pgf" = texlive."pgf";
     "xcolor" = texlive."xcolor";
-    "infwarerr" = texlive."infwarerr";
     "atbegshi" = texlive."atbegshi";
+    "infwarerr" = texlive."infwarerr";
     "todonotes" = texlive."todonotes";
+    "amsfonts" = texlive."amsfonts";
     "xypic" = texlive."xypic";
     "etexcmds" = texlive."etexcmds";
     "url" = texlive."url";
@@ -29,13 +31,14 @@
     "hopatch" = texlive."hopatch";
     "gettitlestring" = texlive."gettitlestring";
     "atveryend" = texlive."atveryend";
-    "kvoptions" = texlive."kvoptions";
     "refcount" = texlive."refcount";
+    "kvoptions" = texlive."kvoptions";
     "bitset" = texlive."bitset";
     "minitoc" = texlive."minitoc";
     "letltxmacro" = texlive."letltxmacro";
     "geometry" = texlive."geometry";
     "pdfescape" = texlive."pdfescape";
+    "beamer" = texlive."beamer";
     "amsmath" = texlive."amsmath";
     "hycolor" = texlive."hycolor";
     "pdftexcmds" = texlive."pdftexcmds";
