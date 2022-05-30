@@ -83,9 +83,10 @@ title, name\\
 % scientific context, motivation, and results.
 % The preferred size of an abstract is one paragraph or one page of text.
 \begin{abstract}
-How much can we improve the accuracy of the resulting PAG from the BCCD
-algorithm using a greedy MAG search to optimise its probabilistic causal
-statements?
+  \textbf{not finished yet}
+  % How much can we improve the accuracy of the resulting PAG from the BCCD
+  % algorithm using a greedy MAG search to optimise its probabilistic causal
+  % statements?
 \todo{abstract is not written properly}
 \end{abstract}
 
@@ -184,12 +185,13 @@ To summarize, our contributions are as follows:
 % specialization, minor, or free electives.
 \chapter{Preliminaries}\label{preliminaries}
 
+\section{Causal Graphs}
+The representation of causal relations in a graph is very intuitive. Given
+a graph $G$, we have an edge $X \rightarrow Y$ if $X$ is a direct cause of
+$Y$. We then represent this in a directed acyclic graph (DAG).
 
-
-\section{Causal Discovery}\label{sec:causal_discovery}
-Although we have introduced what causal graphs are, we have not yet shown
-the relation between a graph and statistical independencies. However, it
-would be prudent to at least define it.
+However, in causal inference we mine such a graph from statistical
+independences. So we must define the relation between them.
 
 We generally rely on two assumptions:
 
@@ -204,22 +206,47 @@ We generally rely on two assumptions:
 \end{defn}
 
 These two assumptions allow us to relate a causal graph to its
-independencies, up to its markov equivalence class.
+independencies. We do so using d-seperation, which is defined by a concept
+known as colliders.
 
-In a causal graph, there is no edge $A \rightarrow B$ if $A$ and $B$ are
-d-seperated.
-
-% TODO(daan): add description of d-seperation
-\begin{defn}
-  X is conditionally independent of Y given a collection of variables Z,
-  denoted $X \ci Y | Z$ iff there is no unblocked path between X and Y in
-  G conditional on the nodes in Z.
+\begin{defn}\label{def:collider}(collider)
+  For three vertices (X, Y, Z) in a path $p$, we say that $Y$ is a collider
+  if both edges $(X, Y), (Z, Y)$ are into Y. That is,
+  \begin{equation*}
+    X \rightarrow Y \leftarrow Z
+  \end{equation*}
+  If Y is not a collider, we call it a non-collider.
 \end{defn}
 
+\begin{defn}(active paths)
+  A path between two vertices X, Y is active relative to a set of vertices
+  $Z$ if
+  \begin{enumerate}
+    \item every non-collider in $p$ is not in $Z$.
 
+    \item every collider in $p$ has a descendant in $Z$.
+  \end{enumerate}
+\end{defn}
+
+Using active paths, we then define d-separation easily:
+
+\begin{defn}(d-separation)
+  $X$ and $Y$ are d-seperated by $Z$ iff there is no active path between
+  $X$ and $Y$ relative to $Z$.
+\end{defn}
+
+Although the definition is somewhat technical, in practice this defines a
+very intuitive way of relating graphical models to their independences.
+\todo{should I add an example showcasing d-separation?}
+
+However, d-separation does not define always define a unique graph for its
+independencies. \todo{example of non-unique graphs maybe?} That is why
+when performing causal discovery, we will represent the result by the
+equivalence class defined by d-seperation, which is known as the
+\emph{markov equivalence class}. This representation will be defined in
+the following section, named a PAG.
 
 \section{Ancestral Graphs}
-% TODO(daan): explain what a DAG is, then we move on to the example
 In this section we will give a quick introduction to ancestral graphs.  To
 do so, similar to \cite{zhangCompletenessOrientationRules2008}, we use an
 example from \cite{richardsonChainGraphsSymmetric1998}, which is
@@ -265,24 +292,42 @@ and change the meaning of marks in the following way:
     variable, and B does not cause A or a selection variable.
 
   \item $A - B$ means A causes B or a selection variable, and B causes A
-    or a selection variable. As we shall see in
-    \ref{sec:ancestral_graphs}, this must mean that both A and B cause
-    some selection variables.
+    or a selection variable.
 \end{itemize}
 
 In the case that there is no selection bias, we have no undirected edges,
 and $A \rightarrow B$ means A causes B. We then are only left with $A
 \leftrightarrow B$, meaning a latent cofounder.
-\todo{explain somewhere that an edge means relation, which is why latent
-cofounder}
 
-Although we now have introduced the meaning of ancestral graphs, we have
-not yet defined what it means to have valid MAGs or PAGs.
+We have now defined what edges we will be adding to a graph, but for it to
+be considered ancestral we have two more conditions:
 
-% TODO(daan): fix description of MAG and PAG
-MAG is a maximal ancestral graph, with no almost directed cycles.
+\begin{enumerate}
+  \item There is no (almost) directed cycle, where we call a cycle almost
+    directed if it is of the form $X \rightarrow \ldots \rightarrow Y
+    \leftrightarrow X$.
 
-PAG is the equivalence class of a MAG.
+  \item For any undirected edge $X - Y$, $X$ and $Y$ have no parents or
+    spouses. Two vertices are spouses if there is a bidirected edge
+    between them.
+\end{enumerate}
+
+We can now define MAGs and PAGs. Given an ancestral graph we can easily
+generalize d-seperation, by allowing bidirected edges for colliders (see
+\ref{def:collider}):
+
+\begin{align*}
+  X \leftrightarrow Y \leftarrow Z \\
+  X \rightarrow Y \leftrightarrow Z
+\end{align*}
+This is referred to as m-separation. We then define a maximal ancestral
+graph (MAG) as an ancestral graph where for any two non-adjacent vertices,
+there is a set of vertices that m-separates them.
+
+An extention of MAGs is partial ancestral graphs (PAGs). Here we represent
+the equivalence class of a MAG by changing marks which are not consistent
+across all representations to circle marks $\circ$.
+\todo{maybe expand this section a bit?}
 
 % This chapter, or series of chapters, delves into all technical details
 % that are required to \emph{prove} your scientific hypothesis. It should
@@ -374,8 +419,14 @@ edges. Our original graph has one of these four. All adjacent MAGS can
 then be easily generated by adding a graph which has one of the other 3
 possibilities.
 
-The real issue comes up when we want to check whether this MAG is also
-valid; that is whether it has any almost directed cycles.
+We can then choose how many changes we want to make to the graph in one
+iteration, which we will denote by $k$. However, choosing $k$ higher than
+one can quickly become very expensive, so we will only check for $k=1$ and
+$k=2$.
+
+The real issue with generating graphs comes up when we want to check
+whether this MAG is also valid; that is whether it has any almost directed
+cycles.
 
 \subsection{Checking correctness}\label{transitive_closure}
 We want to check that \emph{for any directed path from $u$ to $v$, there
@@ -509,10 +560,26 @@ search added.
 
 We will look at the performance of each algorithm for different graph
 size and different graph densities. We will also look at what the best
-parameters for bccdgs are.
+parameters for bccdgs are. The default paramaters which are used in BCCDGS
+are:
 
-\section{Metrics}
-% TODO(daan): add information about PAG accuracy and causal accuracy
+\begin{itemize}
+  \item Cutoff point of statements is $p = 0.5$.
+
+  \item The number of changes in one iteration $k = 1$.
+
+  \item We do not keep the skeleton from BCCD.
+    \textbf{Note: it makes more sense to me to keep the skeleton
+    as default, since that is shown to have the best results.
+    I'm currently running the code with that, but it takes several days to
+    create all the plots.}
+
+\end{itemize}
+
+We use two metrics to rate our results, PAG accuracy and causal accuracy.
+PAG accuracy is how many edge marks are accurate compared to the true PAG,
+so it is the total marks divided by the correct marks. Causal accuracy is
+how accurace the causal predictions are compared to the ground truth DAG.
 
 \section{Algorithm results}
 
@@ -532,11 +599,11 @@ and bccdgs outperform bccd by a significant margin.
 \end{figure}
 
 \subsection{Graph density}
-We can plot similar results for different density graphs. Although we
-might have guessed that bccdgs works better than bccdmp for more difficult
-problems, e.g. larger or denser graphs, it does not appear to directly be
-the case here. We see that for degree=3 bccdgs does not outperform bccdmp
-consistently, and in fact underperforms for lower amount of samples.
+We can plot similar results for different density graphs. we
+might assume that bccdgs works better than bccdmp for more difficult
+problems, e.g. and that seems to also be the case here. However, it is not
+quite as convincing as for graphs of size $15$, as we see that for
+degree=3 bccdgs underperforms for lower amount of samples.
 \begin{figure}
   \centering
   \includegraphics[width=\textwidth]{lib/density_pag.pdf}
@@ -578,6 +645,7 @@ We are not sure what caused this.
 \end{figure}
 
 \subsection{Cutoff}
+\todo{this plot is missing a line for p=0.1, I still have to add that}
 Probably the most interesting paramater is the cutoff point for what
 probability statements to include. Although we have chosen $p=0.5$ so far,
 we can imagine that \emph{not} having low probability statements would
@@ -650,6 +718,10 @@ runtime must come from the format conversions.
 % approach / method.
 \chapter{Related Work}\label{relatedwork}
 % TODO(daan): expand related work
+
+\textbf{note: related work is still very much in progress.}
+\todo{finish related work}
+
 Generally we differentiate between constraint-based methods, score-based
 methods, and hybrid methods, such as BCCD.
 
@@ -657,13 +729,12 @@ Out of constraint based methods the most notable one is
 FCI\cite{spirtesCausationPredictionSearch2000}, which is a complete
 \cite{zhangCompletenessOrientationRules2008} constrain based algorithm.
 
-Score based methods function by relying on minimality or something, but
+Score based methods function by relying on minimality, but
 usually they can't handle latent cofounders or selection bias.
 
-Several other hybrids exist such as greedy search with restarts or
-something.
+The related work should also include something about metaheuristics
+(alternative to greedy search)
 
-% TODO(daan): look at the other greedy search method
 
 % In this chapter you present all conclusions that can be drawn from the
 % preceding chapters. It should not introduce new experiments, theories,
